@@ -1,0 +1,77 @@
+{
+  "name": "Graph RAG 開發環境",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "graph-rag-app",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "vscjava.vscode-maven",
+        "ms-vscode.vscode-json",
+        "ms-python.python",
+        "ms-vscode.docker",
+        "ms-azuretools.vscode-docker",
+        "GraphQL.vscode-graphql",
+        "neo4j.cypher",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "java.home": "/usr/local/openjdk-17",
+        "java.configuration.runtimes": [
+          {
+            "name": "JavaSE-17",
+            "path": "/usr/local/openjdk-17"
+          }
+        ],
+        "maven.executable.path": "/usr/bin/mvn",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  
+  "forwardPorts": [
+    8080,
+    7474,
+    7687,
+    6379,
+    9090,
+    3000
+  ],
+  
+  "portsAttributes": {
+    "8080": {
+      "label": "Graph RAG API",
+      "onAutoForward": "notify"
+    },
+    "7474": {
+      "label": "Neo4j Browser",
+      "onAutoForward": "silent"
+    },
+    "7687": {
+      "label": "Neo4j Bolt",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "9090": {
+      "label": "Prometheus",
+      "onAutoForward": "silent"
+    },
+    "3000": {
+      "label": "Grafana",
+      "onAutoForward": "silent"
+    }
+  },
+  
+  "postCreateCommand": "echo '開發環境已準備就緒！Graph RAG 系統正在啟動中...'",
+  
+  "remoteUser": "root"
+}

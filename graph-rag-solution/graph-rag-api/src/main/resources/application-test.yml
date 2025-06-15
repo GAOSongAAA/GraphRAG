@@ -1,0 +1,36 @@
+# 測試環境配置
+spring:
+  config:
+    activate:
+      on-profile: test
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.neo4j.Neo4jRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration
+
+# Graph RAG 測試環境配置
+graph-rag:
+  neo4j:
+    uri: bolt://localhost:7687
+    username: neo4j
+    password: test
+    database: neo4j
+  llm:
+    provider: mock
+    api-key: test-key-for-demo
+    base-url: http://localhost:8080/mock
+    model: mock-model
+    temperature: 0.7
+    max-tokens: 1000
+  embedding:
+    provider: mock
+    model: mock-embedding
+    dimensions: 1536
+
+# 日誌配置
+logging:
+  level:
+    root: INFO
+    com.graphrag: DEBUG
+    org.springframework: INFO 

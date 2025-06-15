@@ -1,0 +1,29 @@
+# 忽略编译输出
+target/
+*.class
+
+# 忽略 IDE 文件
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# 忽略日志文件
+*.log
+logs/
+
+# 忽略临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 忽略环境配置
+.env
+application-local.yml
+
+# 忽略 Maven 包装器
+.mvn/wrapper/maven-wrapper.jar
+

@@ -1,0 +1,28 @@
+# 生產環境配置
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+# Graph RAG 生產環境配置
+graph-rag:
+  neo4j:
+    uri: ${NEO4J_URI:bolt://neo4j-cluster:7687}
+    username: ${NEO4J_USERNAME:neo4j}
+    password: ${NEO4J_PASSWORD:password123}
+  llm:
+    api-key: ${LLM_API_KEY:7ZbmoUoE9tcv3EfXxXGmy6qKNmoqIKUV3ZHKJwwMP2uRIfPhAoBDJQQJ99BBACi0881XJ3w3AAAAACOGSmXG}
+    base-url: ${LLM_BASE_URL:https://deepseek-ivis-rag.openai.azure.com/}
+    model: ${LLM_MODEL:DeepSeek-R1}
+    temperature: ${LLM_TEMPERATURE:0.7}
+    max-tokens: ${LLM_MAX_TOKENS:4000}
+  embedding:
+    model: ${EMBEDDING_MODEL:text-embedding-3-large}
+
+# 日誌配置
+logging:
+  level:
+    root: WARN
+    com.graphrag: INFO
+  file:
+    name: /var/log/graph-rag/application.log

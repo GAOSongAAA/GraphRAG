@@ -1,0 +1,22 @@
+# 開發環境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+# Graph RAG 開發環境配置
+graph-rag:
+  neo4j:
+    uri: bolt://localhost:7687
+    username: neo4j
+    password: password123
+  llm:
+    api-key: ${OPENAI_API_KEY:sk-test-key}
+    base-url: https://api.openai.com/v1
+
+# 日誌配置
+logging:
+  level:
+    root: INFO
+    com.graphrag: DEBUG
+
