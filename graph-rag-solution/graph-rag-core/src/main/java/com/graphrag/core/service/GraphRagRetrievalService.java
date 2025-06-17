@@ -1,10 +1,11 @@
 package com.graphrag.core.service;
 
-import com.graphrag.core.algorithm.ContextFusionAlgorithm;
+import com.graphrag.core.algorithm.*;
 import com.graphrag.core.algorithm.ContextFusionAlgorithm.FusedContext;
+import com.graphrag.core.algorithm.QueryUnderstandingAlgorithm.QueryAnalysis;
+import com.graphrag.core.algorithm.VectorRetrievalAlgorithm.ScoredResult;
 import com.graphrag.core.context.ContextBuilder;
 import com.graphrag.core.graph.GraphContextService;
-import com.graphrag.core.prompt.RAGPromptTemplates;
 import com.graphrag.core.utils.MergeUtil;
 import com.graphrag.core.model.GraphRagRequest;
 import com.graphrag.core.model.GraphRagResponse;
@@ -12,8 +13,6 @@ import com.graphrag.data.entity.DocumentNode;
 import com.graphrag.data.entity.EntityNode;
 import com.graphrag.data.service.DocumentService;
 import com.graphrag.data.service.EntityService;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.input.Prompt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,26 +31,36 @@ public class GraphRagRetrievalService {
 
     private static final Logger log = LoggerFactory.getLogger(GraphRagRetrievalService.class);
 
-    private final ChatLanguageModel chatModel;
     private final EmbeddingService embedSvc;
     private final DocumentService docSvc;
     private final EntityService entitySvc;
     private final GraphContextService graphCtxSvc;
     private final ContextFusionAlgorithm fusionAlgorithm;
+    private final QueryUnderstandingAlgorithm queryAlgorithm;
+    private final VectorRetrievalAlgorithm vectorAlgorithm;
+    private final ResultRankingAlgorithm rankingAlgorithm;
+    private final AnswerGenerationAlgorithm answerAlgorithm;
     private final ContextBuilder ctxBuilder = new ContextBuilder();
 
-    public GraphRagRetrievalService(ChatLanguageModel chatModel,
+    public GraphRagRetrievalService(
             EmbeddingService embedSvc,
             DocumentService docSvc,
             EntityService entitySvc,
             GraphContextService graphCtxSvc,
-            ContextFusionAlgorithm fusionAlgorithm) {
-        this.chatModel = chatModel;
+            ContextFusionAlgorithm fusionAlgorithm,
+            QueryUnderstandingAlgorithm queryAlgorithm,
+            VectorRetrievalAlgorithm vectorAlgorithm,
+            ResultRankingAlgorithm rankingAlgorithm,
+            AnswerGenerationAlgorithm answerAlgorithm) {
         this.embedSvc = embedSvc;
         this.docSvc = docSvc;
         this.entitySvc = entitySvc;
         this.graphCtxSvc = graphCtxSvc;
         this.fusionAlgorithm = fusionAlgorithm;
+        this.queryAlgorithm = queryAlgorithm;
+        this.vectorAlgorithm = vectorAlgorithm;
+        this.rankingAlgorithm = rankingAlgorithm;
+        this.answerAlgorithm = answerAlgorithm;
     }
 
     /**
@@ -60,13 +69,21 @@ public class GraphRagRetrievalService {
     public GraphRagResponse retrieve(GraphRagRequest req) {
         log.info("Graph RAG retrieve – question: {}", req.getQuestion());
         try {
+            QueryAnalysis analysis = queryAlgorithm.analyzeQuery(req.getQuestion());
+
             List<Double> qEmbed = embedSvc.embedText(req.getQuestion());
             List<DocumentNode> docs = docSvc.findSimilarDocuments(qEmbed, 0.7, 5);
             List<EntityNode> ents = entitySvc.findSimilarEntities(qEmbed, 0.7, 10);
             List<Map<String, Object>> relations = graphCtxSvc.retrieve(ents);
 
+            // Rerank documents based on expanded queries
+            List<ScoredResult<DocumentNode>> scored = vectorAlgorithm.rerank(docs, req.getQuestion(), analysis.getExpandedQueries());
+            Map<String, Double> weights = Map.of("recency", 0.1, "authority", 0.1, "completeness", 0.1, "popularity", 0.1);
+            List<ScoredResult<DocumentNode>> ranked = rankingAlgorithm.multiFactorRanking(scored, weights);
+            docs = ranked.stream().map(ScoredResult::getItem).collect(Collectors.toList());
+
             FusedContext fused = fusionAlgorithm.fuseMultiSourceContext(docs, ents, relations, req.getQuestion());
-            String answer = generateAnswer(req.getQuestion(), fused.getContextText());
+            String answer = answerAlgorithm.generateAnswer(req.getQuestion(), fused, analysis);
             return buildResponse(req.getQuestion(), answer, docs, ents);
         } catch (Exception ex) {
             log.error("Graph RAG retrieve failed", ex);
@@ -80,6 +97,8 @@ public class GraphRagRetrievalService {
     public GraphRagResponse hybridRetrieve(GraphRagRequest req) {
         log.info("Hybrid RAG retrieve – question: {}", req.getQuestion());
         try {
+            QueryAnalysis analysis = queryAlgorithm.analyzeQuery(req.getQuestion());
+
             List<Double> qEmbed = embedSvc.embedText(req.getQuestion());
             List<DocumentNode> vecDocs = docSvc.findSimilarDocuments(qEmbed, 0.6, 3);
             List<EntityNode> vecEnts = entitySvc.findSimilarEntities(qEmbed, 0.6, 5);
@@ -90,8 +109,13 @@ public class GraphRagRetrievalService {
             List<EntityNode> allEnts = MergeUtil.merge(15, vecEnts, graphEnts);
             List<Map<String, Object>> relations = graphCtxSvc.retrieve(allEnts);
 
+            List<ScoredResult<DocumentNode>> scored = vectorAlgorithm.rerank(allDocs, req.getQuestion(), analysis.getExpandedQueries());
+            Map<String, Double> weights = Map.of("recency", 0.1, "authority", 0.1, "completeness", 0.1, "popularity", 0.1);
+            List<ScoredResult<DocumentNode>> ranked = rankingAlgorithm.multiFactorRanking(scored, weights);
+            allDocs = ranked.stream().map(ScoredResult::getItem).collect(Collectors.toList());
+
             FusedContext fused = fusionAlgorithm.fuseMultiSourceContext(allDocs, allEnts, relations, req.getQuestion());
-            String answer = generateAnswer(req.getQuestion(), fused.getContextText());
+            String answer = answerAlgorithm.generateAnswer(req.getQuestion(), fused, analysis);
             return buildResponse(req.getQuestion(), answer, allDocs, allEnts);
         } catch (Exception ex) {
             log.error("Hybrid RAG retrieve failed", ex);
@@ -102,11 +126,6 @@ public class GraphRagRetrievalService {
     // -------------------------------------------
     // Internal helpers
     // -------------------------------------------
-
-    private String generateAnswer(String question, String context) {
-        Prompt prompt = RAGPromptTemplates.RAG_TEMPLATE.apply(Map.of("question", question, "context", context));
-        return chatModel.generate(prompt.text());
-    }
 
     private GraphRagResponse buildResponse(String q, String a, List<DocumentNode> docs, List<EntityNode> ents) {
         GraphRagResponse res = new GraphRagResponse();
