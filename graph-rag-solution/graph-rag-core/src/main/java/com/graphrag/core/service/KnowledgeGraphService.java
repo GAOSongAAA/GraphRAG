@@ -81,7 +81,7 @@ public class KnowledgeGraphService {
             DocumentNode documentNode = saveDocumentToDatabase(document);
 
             // 2. Split document
-            List<TextSegment> segments = textSplitterService.splitDocument(document);
+            List<TextSegment> segments = textSplitterService.splitDocumentOptimized(document);
             logger.info("Document splitting completed, generated {} segments", segments.size());
 
             // 3. Extract entities and relations for each segment

@@ -10,6 +10,7 @@ import com.graphrag.core.service.KnowledgeGraphService;
 import com.graphrag.data.service.DocumentService;
 import com.graphrag.data.service.EntityService;
 import com.graphrag.data.service.GraphService;
+import com.graphrag.core.service.DocumentLoaderService;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,6 +59,9 @@ public class GraphRagController {
 
     @Autowired
     private GraphService graphService;
+
+    @Autowired
+    private DocumentLoaderService documentLoaderService;
 
     @Autowired
     public GraphRagController(AsyncTaskRegistry taskRegistry) {
@@ -163,14 +167,11 @@ public class GraphRagController {
         logger.info("Received document upload request, filename: {}", file.getOriginalFilename());
 
         try {
-            // Read file content
-            String content = new String(file.getBytes(), "UTF-8");
-            String documentSource = source != null ? source : file.getOriginalFilename();
+            Document document = documentLoaderService.loadFromMultipartFile(file);
+            if (source != null) {
+                document.metadata().add("source", source);
+            }
 
-            // Create document and build knowledge graph
-            Metadata metadata = new Metadata();
-            metadata.add("source", documentSource);
-            Document document = Document.from(content, metadata);
             knowledgeGraphService.buildKnowledgeGraphFromDocument(document);
 
             return ResponseEntity
@@ -199,12 +200,10 @@ public class GraphRagController {
 
             for (MultipartFile file : files) {
                 try {
-                    String content = new String(file.getBytes(), "UTF-8");
-                    String documentSource = source != null ? source : file.getOriginalFilename();
-
-                    Metadata metadata = new Metadata();
-                    metadata.add("source", documentSource);
-                    Document document = Document.from(content, metadata);
+                    Document document = documentLoaderService.loadFromMultipartFile(file);
+                    if (source != null) {
+                        document.metadata().add("source", source);
+                    }
                     knowledgeGraphService.buildKnowledgeGraphFromDocument(document);
 
                     successCount++;
