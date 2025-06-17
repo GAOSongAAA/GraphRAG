@@ -1,12 +1,15 @@
 package com.graphrag.data.entity;
 
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 实体节点
@@ -15,7 +18,7 @@ import java.util.List;
 public class EntityNode {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue                      // internalId
     private Long id;
 
     @Property("name")
@@ -27,8 +30,8 @@ public class EntityNode {
     @Property("description")
     private String description;
 
-    @Property("properties")
-    private String properties;
+    @CompositeProperty(prefix = "properties")
+    private Map<String, Object> properties = new HashMap<>();
 
     @Property("embedding")
     private List<Double> embedding;
@@ -68,8 +71,8 @@ public class EntityNode {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getProperties() { return properties; }
-    public void setProperties(String properties) { this.properties = properties; }
+    public Map<String, Object> getProperties() { return properties; }
+    public void setProperties(Map<String, Object> properties) { this.properties = properties; }
 
     public List<Double> getEmbedding() { return embedding; }
     public void setEmbedding(List<Double> embedding) { this.embedding = embedding; }

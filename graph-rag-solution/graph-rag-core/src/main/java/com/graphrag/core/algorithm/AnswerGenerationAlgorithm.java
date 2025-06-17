@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * 答案生成策略算法
+ * Answer Generation Strategy Algorithm
  */
 @Component
 public class AnswerGenerationAlgorithm {
@@ -23,172 +23,172 @@ public class AnswerGenerationAlgorithm {
     @Autowired
     private ChatLanguageModel chatLanguageModel;
 
-    // 不同类型查询的提示模板
+    // Prompt templates for different query types
     private static final PromptTemplate FACTUAL_TEMPLATE = PromptTemplate.from("""
-            基于以下上下文信息，回答用户的事实性问题。请提供准确、简洁的答案。
+            Based on the following context, answer the user's factual question. Please provide accurate and concise answers.
             
-            上下文信息：
+            Context:
             {{context}}
             
-            用户问题：{{question}}
+            User Question: {{question}}
             
-            请直接回答问题，如果上下文信息不足，请明确说明。
+            Please answer directly, and if the context is insufficient, please clearly state so.
             
-            回答：
+            Answer:
             """);
 
     private static final PromptTemplate CONCEPTUAL_TEMPLATE = PromptTemplate.from("""
-            基于以下上下文信息，详细解释相关概念。请提供全面、易懂的解释。
+            Based on the following context, explain the relevant concepts in detail. Please provide comprehensive and easy-to-understand explanations.
             
-            上下文信息：
+            Context:
             {{context}}
             
-            用户问题：{{question}}
+            User Question: {{question}}
             
-            请提供详细的概念解释，包括定义、特点、应用等方面。
+            Please provide detailed concept explanations, including definition, characteristics, applications, etc.
             
-            回答：
+            Answer:
             """);
 
     private static final PromptTemplate COMPARATIVE_TEMPLATE = PromptTemplate.from("""
-            基于以下上下文信息，进行比较分析。请从多个维度进行对比。
+            Based on the following context, conduct a comparative analysis. Please compare from multiple dimensions.
             
-            上下文信息：
+            Context:
             {{context}}
             
-            用户问题：{{question}}
+            User Question: {{question}}
             
-            请提供结构化的比较分析，包括相同点、不同点、优缺点等。
+            Please provide structured comparative analysis, including similarities, differences, pros and cons.
             
-            回答：
+            Answer:
             """);
 
     private static final PromptTemplate REASONING_TEMPLATE = PromptTemplate.from("""
-            基于以下上下文信息，进行推理分析。请提供逻辑清晰的推理过程。
+            Based on the following context, conduct reasoning analysis. Please provide clear logical reasoning process.
             
-            上下文信息：
+            Context:
             {{context}}
             
-            用户问题：{{question}}
+            User Question: {{question}}
             
-            请提供推理过程和结论，确保逻辑严密。
+            Please provide reasoning process and conclusions with rigorous logic.
             
-            回答：
+            Answer:
             """);
 
     private static final PromptTemplate LIST_TEMPLATE = PromptTemplate.from("""
-            基于以下上下文信息，提供列表形式的回答。
+            Based on the following context, provide answer in list format.
             
-            上下文信息：
+            Context:
             {{context}}
             
-            用户问题：{{question}}
+            User Question: {{question}}
             
-            请以清晰的列表形式组织答案。
+            Please organize the answer in a clear list format.
             
-            回答：
+            Answer:
             """);
 
     /**
-     * 生成答案
+     * Generate answer
      */
     public String generateAnswer(String question, FusedContext context, QueryAnalysis queryAnalysis) {
-        logger.debug("开始生成答案，查询类型: {}", queryAnalysis.getQueryType());
+        logger.debug("Start generating answer, query type: {}", queryAnalysis.getQueryType());
 
         try {
-            // 根据查询类型选择合适的模板
+            // Select appropriate template based on query type
             PromptTemplate template = selectTemplate(queryAnalysis.getQueryType());
             
-            // 构建提示
+            // Build prompt
             Prompt prompt = template.apply(Map.of(
                     "question", question,
                     "context", context.getContextText()
             ));
 
-            // 生成答案
+            // Generate answer
             String answer = chatLanguageModel.generate(prompt.text());
             
-            // 后处理答案
+            // Post-process answer
             answer = postProcessAnswer(answer, queryAnalysis);
             
-            logger.info("答案生成完成，长度: {}", answer.length());
+            logger.info("Answer generation completed, length: {}", answer.length());
             return answer;
 
         } catch (Exception e) {
-            logger.error("答案生成失败", e);
+            logger.error("Answer generation failed", e);
             return generateFallbackAnswer(question, context);
         }
     }
 
     /**
-     * 选择提示模板
+     * Select prompt template
      */
     private PromptTemplate selectTemplate(String queryType) {
         switch (queryType) {
-            case "事实查询":
+            case "factual":
                 return FACTUAL_TEMPLATE;
-            case "概念解释":
+            case "conceptual":
                 return CONCEPTUAL_TEMPLATE;
-            case "比较分析":
+            case "comparative":
                 return COMPARATIVE_TEMPLATE;
-            case "推理问答":
+            case "reasoning":
                 return REASONING_TEMPLATE;
-            case "列表查询":
+            case "list":
                 return LIST_TEMPLATE;
             default:
-                return CONCEPTUAL_TEMPLATE; // 默认使用概念解释模板
+                return CONCEPTUAL_TEMPLATE; // Default to conceptual template
         }
     }
 
     /**
-     * 后处理答案
+     * Post-process answer
      */
     private String postProcessAnswer(String answer, QueryAnalysis queryAnalysis) {
-        // 1. 清理格式
+        // 1. Clean formatting
         answer = answer.trim();
         
-        // 2. 根据期望答案类型调整格式
+        // 2. Adjust format based on expected answer type
         switch (queryAnalysis.getExpectedAnswerType()) {
-            case "简短回答":
+            case "short":
                 answer = extractShortAnswer(answer);
                 break;
-            case "列表":
+            case "list":
                 answer = formatAsList(answer);
                 break;
-            case "比较表格":
+            case "comparison":
                 answer = formatAsComparison(answer);
                 break;
         }
 
-        // 3. 添加置信度信息（如果相关性较低）
+        // 3. Add confidence information (if relevance is low)
         if (queryAnalysis.getQueryVector() != null) {
-            // 这里可以添加置信度评估逻辑
+            // Confidence assessment logic can be added here
         }
 
         return answer;
     }
 
     /**
-     * 提取简短答案
+     * Extract short answer
      */
     private String extractShortAnswer(String answer) {
-        // 提取第一句话作为简短答案
-        String[] sentences = answer.split("[。！？]");
+        // Extract first sentence as short answer
+        String[] sentences = answer.split("[.!?]");
         if (sentences.length > 0) {
-            return sentences[0].trim() + "。";
+            return sentences[0].trim() + ".";
         }
         return answer.length() > 100 ? answer.substring(0, 100) + "..." : answer;
     }
 
     /**
-     * 格式化为列表
+     * Format as list
      */
     private String formatAsList(String answer) {
         if (answer.contains("1.") || answer.contains("•") || answer.contains("-")) {
-            return answer; // 已经是列表格式
+            return answer; // Already in list format
         }
         
-        // 尝试将段落转换为列表
+        // Try to convert paragraphs to list
         String[] paragraphs = answer.split("\n\n");
         if (paragraphs.length > 1) {
             StringBuilder listAnswer = new StringBuilder();
@@ -202,90 +202,90 @@ public class AnswerGenerationAlgorithm {
     }
 
     /**
-     * 格式化为比较
+     * Format as comparison
      */
     private String formatAsComparison(String answer) {
-        // 简单的比较格式化
-        if (answer.contains("相同点") || answer.contains("不同点") || answer.contains("对比")) {
-            return answer; // 已经是比较格式
+        // Simple comparison formatting
+        if (answer.contains("Similarities") || answer.contains("Differences") || answer.contains("Comparison")) {
+            return answer; // Already in comparison format
         }
         
-        return "比较分析：\n" + answer;
+        return "Comparative Analysis:\n" + answer;
     }
 
     /**
-     * 生成备用答案
+     * Generate fallback answer
      */
     private String generateFallbackAnswer(String question, FusedContext context) {
         if (context.getContextText().trim().isEmpty()) {
-            return "抱歉，我没有找到足够的相关信息来回答您的问题。请尝试重新表述您的问题或提供更多上下文。";
+            return "Sorry, I couldn't find enough relevant information to answer your question. Please try rephrasing your question or provide more context.";
         }
         
-        return "基于可用信息，我尝试回答您的问题：\n\n" + 
+        return "Based on available information, I'll try to answer your question:\n\n" + 
                context.getContextText().substring(0, Math.min(500, context.getContextText().length())) + 
-               "\n\n请注意，这个回答可能不够完整，建议您查阅更多资料。";
+               "\n\nPlease note that this answer may be incomplete. It's recommended to consult additional sources.";
     }
 
     /**
-     * 多轮对话答案生成
+     * Generate conversational answer
      */
     public String generateConversationalAnswer(String question, FusedContext context, 
                                              QueryAnalysis queryAnalysis, String conversationHistory) {
-        logger.debug("生成多轮对话答案");
+        logger.debug("Generating conversational answer");
 
         PromptTemplate conversationalTemplate = PromptTemplate.from("""
-                基于以下对话历史和上下文信息，回答用户的问题。请保持对话的连贯性。
+                Based on the following conversation history and context, answer the user's question. Please maintain conversation coherence.
                 
-                对话历史：
+                Conversation History:
                 {{history}}
                 
-                上下文信息：
+                Context:
                 {{context}}
                 
-                当前问题：{{question}}
+                Current Question: {{question}}
                 
-                请提供连贯、相关的回答。
+                Please provide a coherent and relevant answer.
                 
-                回答：
+                Answer:
                 """);
 
         try {
             Prompt prompt = conversationalTemplate.apply(Map.of(
                     "question", question,
                     "context", context.getContextText(),
-                    "history", conversationHistory != null ? conversationHistory : "无"
+                    "history", conversationHistory != null ? conversationHistory : "None"
             ));
 
             return chatLanguageModel.generate(prompt.text());
 
         } catch (Exception e) {
-            logger.error("多轮对话答案生成失败", e);
+            logger.error("Conversational answer generation failed", e);
             return generateAnswer(question, context, queryAnalysis);
         }
     }
 
     /**
-     * 生成解释性答案
+     * Generate explanatory answer
      */
     public String generateExplanatoryAnswer(String question, FusedContext context, 
                                           QueryAnalysis queryAnalysis) {
-        logger.debug("生成解释性答案");
+        logger.debug("Generating explanatory answer");
 
         PromptTemplate explanatoryTemplate = PromptTemplate.from("""
-                请详细解释以下问题，提供全面的背景信息和深入分析。
+                Please explain the following question in detail, providing comprehensive background information and in-depth analysis.
                 
-                上下文信息：
+                Context:
                 {{context}}
                 
-                问题：{{question}}
+                Question: {{question}}
                 
-                请提供：
-                1. 基本概念解释
-                2. 相关背景信息
-                3. 详细分析
-                4. 实际应用或例子
+                Please provide:
+                1. Basic concept explanation
+                2. Related background information
+                3. Detailed analysis
+                4. Practical applications or examples
                 
-                回答：
+                Answer:
                 """);
 
         try {
@@ -297,17 +297,17 @@ public class AnswerGenerationAlgorithm {
             return chatLanguageModel.generate(prompt.text());
 
         } catch (Exception e) {
-            logger.error("解释性答案生成失败", e);
+            logger.error("Explanatory answer generation failed", e);
             return generateAnswer(question, context, queryAnalysis);
         }
     }
 
     /**
-     * 生成结构化答案
+     * Generate structured answer
      */
     public StructuredAnswer generateStructuredAnswer(String question, FusedContext context, 
                                                    QueryAnalysis queryAnalysis) {
-        logger.debug("生成结构化答案");
+        logger.debug("Generating structured answer");
 
         try {
             String mainAnswer = generateAnswer(question, context, queryAnalysis);
@@ -322,16 +322,16 @@ public class AnswerGenerationAlgorithm {
             return structuredAnswer;
 
         } catch (Exception e) {
-            logger.error("结构化答案生成失败", e);
+            logger.error("Structured answer generation failed", e);
             return createFallbackStructuredAnswer(question);
         }
     }
 
     /**
-     * 计算置信度
+     * Calculate confidence
      */
     private double calculateConfidence(FusedContext context, QueryAnalysis queryAnalysis) {
-        // 基于上下文相关性和查询复杂度计算置信度
+        // Calculate confidence based on context relevance and query complexity
         double contextRelevance = context.getOverallRelevance();
         double complexityFactor = getComplexityFactor(queryAnalysis.getComplexity());
         
@@ -339,23 +339,23 @@ public class AnswerGenerationAlgorithm {
     }
 
     /**
-     * 获取复杂度因子
+     * Get complexity factor
      */
     private double getComplexityFactor(String complexity) {
         switch (complexity) {
-            case "简单": return 1.0;
-            case "中等": return 0.8;
-            case "复杂": return 0.6;
+            case "simple": return 1.0;
+            case "medium": return 0.8;
+            case "complex": return 0.6;
             default: return 0.8;
         }
     }
 
     /**
-     * 提取关键点
+     * Extract key points
      */
     private String[] extractKeyPoints(String answer) {
-        // 简单的关键点提取
-        String[] sentences = answer.split("[。！？]");
+        // Simple key points extraction
+        String[] sentences = answer.split("[.!?]");
         return java.util.Arrays.stream(sentences)
                 .filter(s -> s.trim().length() > 10)
                 .limit(3)
@@ -364,20 +364,20 @@ public class AnswerGenerationAlgorithm {
     }
 
     /**
-     * 创建备用结构化答案
+     * Create fallback structured answer
      */
     private StructuredAnswer createFallbackStructuredAnswer(String question) {
         StructuredAnswer answer = new StructuredAnswer();
-        answer.setMainAnswer("抱歉，无法生成满意的答案。");
+        answer.setMainAnswer("Sorry, unable to generate a satisfactory answer.");
         answer.setConfidence(0.1);
         answer.setSourceCount(0);
-        answer.setAnswerType("错误");
-        answer.setKeyPoints(new String[]{"信息不足"});
+        answer.setAnswerType("error");
+        answer.setKeyPoints(new String[]{"Insufficient information"});
         return answer;
     }
 
     /**
-     * 结构化答案类
+     * Structured Answer class
      */
     public static class StructuredAnswer {
         private String mainAnswer;
@@ -403,4 +403,3 @@ public class AnswerGenerationAlgorithm {
         public void setKeyPoints(String[] keyPoints) { this.keyPoints = keyPoints; }
     }
 }
-

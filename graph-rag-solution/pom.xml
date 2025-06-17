@@ -28,7 +28,7 @@
         <neo4j.version>5.15.0</neo4j.version>
         
         <!-- 其他依赖版本 -->
-        <jackson.version>2.16.1</jackson.version>
+        <jackson.version>2.15.4</jackson.version>
         <slf4j.version>2.0.11</slf4j.version>
         <junit.version>5.10.1</junit.version>
         <guava.version>32.1.3-jre</guava.version>
@@ -71,6 +71,13 @@
                 <version>${langchain4j.version}</version>
             </dependency>
 
+            <!-- LangChain4j Azure OpenAI 集成 -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-azure-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
             <!-- LangChain4j Neo4j 集成 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
@@ -103,6 +110,34 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <!-- Jackson BOM - 統一版本管理 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- 強制統一 Jackson 核心組件 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
 

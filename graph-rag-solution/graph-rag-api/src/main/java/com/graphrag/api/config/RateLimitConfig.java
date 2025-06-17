@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 限流配置
+ * Rate Limiting Configuration
  */
 @Configuration
 public class RateLimitConfig {
@@ -19,7 +19,7 @@ public class RateLimitConfig {
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     /**
-     * 创建限流桶
+     * Create a rate limit bucket
      */
     public Bucket createBucket(String key, long capacity, long refillTokens, Duration refillPeriod) {
         return buckets.computeIfAbsent(key, k -> {
@@ -31,7 +31,7 @@ public class RateLimitConfig {
     }
 
     /**
-     * 查询限流桶（每分钟10次）
+     * Query rate limit bucket (10 requests per minute)
      */
     @Bean
     public Bucket queryRateLimitBucket() {
@@ -42,7 +42,7 @@ public class RateLimitConfig {
     }
 
     /**
-     * 文档上传限流桶（每小时5次）
+     * Document upload rate limit bucket (5 uploads per hour)
      */
     @Bean
     public Bucket uploadRateLimitBucket() {
@@ -53,17 +53,16 @@ public class RateLimitConfig {
     }
 
     /**
-     * 获取用户限流桶
+     * Get user rate limit bucket
      */
     public Bucket getUserBucket(String userId) {
         return createBucket("user:" + userId, 100, 100, Duration.ofHours(1));
     }
 
     /**
-     * 获取IP限流桶
+     * Get IP rate limit bucket
      */
     public Bucket getIpBucket(String ip) {
         return createBucket("ip:" + ip, 50, 50, Duration.ofHours(1));
     }
 }
-

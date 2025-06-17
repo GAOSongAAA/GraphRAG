@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web MVC 配置
+ * Web MVC Configuration
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -33,4 +33,3 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/api/v1/graph-rag/health");
     }
 }
-

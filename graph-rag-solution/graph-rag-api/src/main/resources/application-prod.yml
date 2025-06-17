@@ -3,6 +3,27 @@ spring:
   config:
     activate:
       on-profile: prod
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1小時
+      cache-null-values: true
+      key-prefix: graphrag
+      use-key-prefix: true
+
+# Redis配置
+  redis:
+    host: ${REDIS_HOST:redis-cluster}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:password123}
+    timeout: 10000
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1
 
 # Graph RAG 生產環境配置
 graph-rag:

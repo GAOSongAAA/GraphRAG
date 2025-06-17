@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 向量检索优化算法
+ * Vector retrieval optimization algorithm
  */
 @Component
 public class VectorRetrievalAlgorithm {
@@ -23,17 +23,17 @@ public class VectorRetrievalAlgorithm {
     private EmbeddingService embeddingService;
 
     /**
-     * 多查询向量检索
+     * Multi-query vector retrieval
      */
     public List<ScoredResult<DocumentNode>> multiQueryVectorRetrieval(
             List<String> queries, List<DocumentNode> candidates, int topK) {
         
-        logger.debug("多查询向量检索，查询数量: {}, 候选文档数量: {}", queries.size(), candidates.size());
+        logger.debug("Multi-query vector retrieval, query count: {}, candidate count: {}", queries.size(), candidates.size());
 
-        // 生成查询向量
+        // Generate query vectors
         List<List<Double>> queryVectors = embeddingService.embedTexts(queries);
 
-        // 计算每个候选文档与所有查询的相似度
+        // Calculate similarity between each candidate document and all queries
         Map<DocumentNode, Double> documentScores = new HashMap<>();
 
         for (DocumentNode doc : candidates) {
@@ -49,7 +49,7 @@ public class VectorRetrievalAlgorithm {
             documentScores.put(doc, maxSimilarity);
         }
 
-        // 排序并返回前 K 个结果
+        // Sort and return top K results
         return documentScores.entrySet().stream()
                 .sorted(Map.Entry.<DocumentNode, Double>comparingByValue().reversed())
                 .limit(topK)
@@ -58,11 +58,11 @@ public class VectorRetrievalAlgorithm {
     }
 
     /**
-     * 重排序算法
+     * Reranking algorithm
      */
     public List<ScoredResult<DocumentNode>> rerank(List<DocumentNode> candidates, String query, 
                                                   List<String> contextQueries) {
-        logger.debug("重排序，候选数量: {}, 上下文查询数量: {}", candidates.size(), contextQueries.size());
+        logger.debug("Reranking, candidate count: {}, context query count: {}", candidates.size(), contextQueries.size());
 
         List<Double> queryVector = embeddingService.embedText(query);
         List<List<Double>> contextVectors = embeddingService.embedTexts(contextQueries);
@@ -74,10 +74,10 @@ public class VectorRetrievalAlgorithm {
                 continue;
             }
 
-            // 计算与主查询的相似度
+            // Calculate similarity with main query
             double mainSimilarity = embeddingService.cosineSimilarity(queryVector, doc.getEmbedding());
 
-            // 计算与上下文查询的平均相似度
+            // Calculate average similarity with context queries
             double contextSimilarity = 0.0;
             if (!contextVectors.isEmpty()) {
                 for (List<Double> contextVector : contextVectors) {
@@ -86,7 +86,7 @@ public class VectorRetrievalAlgorithm {
                 contextSimilarity /= contextVectors.size();
             }
 
-            // 综合评分（主查询权重 0.7，上下文权重 0.3）
+            // Final score (main query weight 0.7, context weight 0.3)
             double finalScore = 0.7 * mainSimilarity + 0.3 * contextSimilarity;
             results.add(new ScoredResult<>(doc, finalScore));
         }
@@ -97,11 +97,12 @@ public class VectorRetrievalAlgorithm {
     }
 
     /**
-     * 多样性检索
+     * Diversity-aware retrieval
      */
     public List<ScoredResult<DocumentNode>> diversityRetrieval(List<DocumentNode> candidates, 
                                                               String query, int topK, double diversityWeight) {
-        logger.debug("多样性检索，候选数量: {}, topK: {}, 多样性权重: {}", candidates.size(), topK, diversityWeight);
+        logger.debug("Diversity retrieval, candidate count: {}, topK: {}, diversity weight: {}", 
+                    candidates.size(), topK, diversityWeight);
 
         List<Double> queryVector = embeddingService.embedText(query);
         List<ScoredResult<DocumentNode>> selected = new ArrayList<>();
@@ -116,10 +117,10 @@ public class VectorRetrievalAlgorithm {
                     continue;
                 }
 
-                // 计算与查询的相似度
+                // Calculate similarity with query
                 double relevanceScore = embeddingService.cosineSimilarity(queryVector, doc.getEmbedding());
 
-                // 计算与已选择文档的最大相似度（多样性惩罚）
+                // Calculate maximum similarity with selected documents (diversity penalty)
                 double maxSimilarityToSelected = 0.0;
                 for (ScoredResult<DocumentNode> selectedResult : selected) {
                     double similarity = embeddingService.cosineSimilarity(
@@ -127,7 +128,7 @@ public class VectorRetrievalAlgorithm {
                     maxSimilarityToSelected = Math.max(maxSimilarityToSelected, similarity);
                 }
 
-                // 综合评分：相关性 - 多样性惩罚
+                // Final score: relevance - diversity penalty
                 double finalScore = relevanceScore - diversityWeight * maxSimilarityToSelected;
 
                 if (finalScore > bestScore) {
@@ -148,16 +149,17 @@ public class VectorRetrievalAlgorithm {
     }
 
     /**
-     * 层次化检索
+     * Hierarchical retrieval
      */
     public List<ScoredResult<DocumentNode>> hierarchicalRetrieval(List<DocumentNode> candidates, 
                                                                  String query, List<String> hierarchyLevels) {
-        logger.debug("层次化检索，候选数量: {}, 层次级别: {}", candidates.size(), hierarchyLevels);
+        logger.debug("Hierarchical retrieval, candidate count: {}, hierarchy levels: {}", 
+                    candidates.size(), hierarchyLevels);
 
         List<Double> queryVector = embeddingService.embedText(query);
         Map<String, List<DocumentNode>> levelGroups = new HashMap<>();
 
-        // 按层次级别分组
+        // Group by hierarchy level
         for (DocumentNode doc : candidates) {
             String level = extractHierarchyLevel(doc, hierarchyLevels);
             levelGroups.computeIfAbsent(level, k -> new ArrayList<>()).add(doc);
@@ -165,7 +167,7 @@ public class VectorRetrievalAlgorithm {
 
         List<ScoredResult<DocumentNode>> results = new ArrayList<>();
 
-        // 为每个层次级别计算相似度
+        // Calculate similarities for each hierarchy level
         for (String level : hierarchyLevels) {
             List<DocumentNode> levelDocs = levelGroups.getOrDefault(level, List.of());
             
@@ -176,7 +178,7 @@ public class VectorRetrievalAlgorithm {
 
                 double similarity = embeddingService.cosineSimilarity(queryVector, doc.getEmbedding());
                 
-                // 根据层次级别调整权重
+                // Adjust weight based on hierarchy level
                 double levelWeight = getLevelWeight(level, hierarchyLevels);
                 double adjustedScore = similarity * levelWeight;
                 
@@ -190,10 +192,10 @@ public class VectorRetrievalAlgorithm {
     }
 
     /**
-     * 提取文档的层次级别
+     * Extract document hierarchy level
      */
     private String extractHierarchyLevel(DocumentNode doc, List<String> hierarchyLevels) {
-        // 简单的层次级别提取逻辑，基于文档来源或元数据
+        // Simple hierarchy level extraction based on document source or metadata
         String source = doc.getSource();
         if (source != null) {
             for (String level : hierarchyLevels) {
@@ -206,28 +208,29 @@ public class VectorRetrievalAlgorithm {
     }
 
     /**
-     * 获取层次级别权重
+     * Get hierarchy level weight
      */
     private double getLevelWeight(String level, List<String> hierarchyLevels) {
         int index = hierarchyLevels.indexOf(level);
         if (index == -1) {
             return 1.0;
         }
-        // 越靠前的层次级别权重越高
+        // Higher weights for earlier hierarchy levels
         return 1.0 - (index * 0.1);
     }
 
     /**
-     * 自适应阈值检索
+     * Adaptive threshold retrieval
      */
     public List<ScoredResult<DocumentNode>> adaptiveThresholdRetrieval(List<DocumentNode> candidates, 
                                                                       String query, double baseThreshold) {
-        logger.debug("自适应阈值检索，候选数量: {}, 基础阈值: {}", candidates.size(), baseThreshold);
+        logger.debug("Adaptive threshold retrieval, candidate count: {}, base threshold: {}", 
+                    candidates.size(), baseThreshold);
 
         List<Double> queryVector = embeddingService.embedText(query);
         List<ScoredResult<DocumentNode>> allResults = new ArrayList<>();
 
-        // 计算所有相似度
+        // Calculate all similarities
         for (DocumentNode doc : candidates) {
             if (doc.getEmbedding() == null) {
                 continue;
@@ -237,25 +240,25 @@ public class VectorRetrievalAlgorithm {
             allResults.add(new ScoredResult<>(doc, similarity));
         }
 
-        // 排序
+        // Sort results
         allResults.sort(Comparator.comparing(ScoredResult<DocumentNode>::getScore).reversed());
 
         if (allResults.isEmpty()) {
             return allResults;
         }
 
-        // 计算自适应阈值
+        // Calculate adaptive threshold
         double maxScore = allResults.get(0).getScore();
         double adaptiveThreshold = Math.max(baseThreshold, maxScore * 0.8);
 
-        // 过滤结果
+        // Filter results
         return allResults.stream()
                 .filter(result -> result.getScore() >= adaptiveThreshold)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 评分结果类
+     * Scored result class
      */
     public static class ScoredResult<T> {
         private final T item;
@@ -275,4 +278,3 @@ public class VectorRetrievalAlgorithm {
         }
     }
 }
-

@@ -14,14 +14,14 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
 
 /**
- * 缓存配置
+ * Cache Configuration
  */
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
     /**
-     * 内存缓存管理器（开发环境）
+     * Memory Cache Manager (Development Environment)
      */
     @Bean
     public CacheManager memoryCacheManager() {
@@ -36,13 +36,13 @@ public class CacheConfig {
     }
 
     /**
-     * Redis 缓存管理器（生产环境）
+     * Redis Cache Manager (Production Environment)
      */
     // @Bean
     // @Primary
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1)) // 缓存1小时
+                .entryTtl(Duration.ofHours(1)) // Cache for 1 hour
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(
                         new org.springframework.data.redis.serializer.StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
@@ -53,4 +53,3 @@ public class CacheConfig {
                 .build();
     }
 }
-

@@ -95,10 +95,10 @@ public class GraphTraversalAlgorithm {
     }
 
     /**
-     * 中心性分析
+     * Centrality analysis
      */
     public List<Map<String, Object>> calculateCentrality(List<String> entityNames, String centralityType) {
-        logger.debug("计算中心性，类型: {}, 实体数量: {}", centralityType, entityNames.size());
+        logger.debug("Calculating centrality, type: {}, entity count: {}", centralityType, entityNames.size());
 
         String cypher;
         switch (centralityType.toLowerCase()) {
@@ -138,7 +138,7 @@ public class GraphTraversalAlgorithm {
                         """;
                 break;
             default:
-                throw new IllegalArgumentException("不支持的中心性类型: " + centralityType);
+                throw new IllegalArgumentException("Unsupported centrality type: " + centralityType);
         }
 
         Map<String, Object> parameters = Map.of("entityNames", entityNames);
@@ -146,12 +146,12 @@ public class GraphTraversalAlgorithm {
     }
 
     /**
-     * 子图提取
+     * Subgraph extraction
      */
     public Map<String, Object> extractSubgraph(List<String> entityNames, int maxDepth) {
-        logger.debug("提取子图，实体数量: {}, 最大深度: {}", entityNames.size(), maxDepth);
+        logger.debug("Extracting subgraph, entity count: {}, max depth: {}", entityNames.size(), maxDepth);
 
-        // 获取节点
+        // Get nodes
         String nodesCypher = """
                 MATCH (e:Entity)
                 WHERE e.name IN $entityNames
@@ -161,7 +161,7 @@ public class GraphTraversalAlgorithm {
                 RETURN DISTINCT node.name as name, node.type as type, node.description as description
                 """.formatted(maxDepth);
 
-        // 获取关系
+        // Get relationships
         String relationshipsCypher = """
                 MATCH (e1:Entity)-[r]-(e2:Entity)
                 WHERE e1.name IN $entityNames
@@ -185,12 +185,12 @@ public class GraphTraversalAlgorithm {
     }
 
     /**
-     * 相似实体聚类
+     * Similar entity clustering
      */
     public List<List<String>> clusterSimilarEntities(List<String> entityNames, double similarityThreshold) {
-        logger.debug("相似实体聚类，实体数量: {}, 相似度阈值: {}", entityNames.size(), similarityThreshold);
+        logger.debug("Clustering similar entities, entity count: {}, similarity threshold: {}", entityNames.size(), similarityThreshold);
 
-        // 获取实体的嵌入向量
+        // Get entity embeddings
         String cypher = """
                 MATCH (e:Entity)
                 WHERE e.name IN $entityNames AND e.embedding IS NOT NULL
@@ -200,7 +200,7 @@ public class GraphTraversalAlgorithm {
         Map<String, Object> parameters = Map.of("entityNames", entityNames);
         List<Map<String, Object>> entityEmbeddings = graphService.executeCypher(cypher, parameters);
 
-        // 简单的聚类算法（基于相似度阈值）
+        // Simple clustering algorithm (based on similarity threshold)
         List<List<String>> clusters = new ArrayList<>();
         Set<String> processed = new HashSet<>();
 
@@ -238,12 +238,12 @@ public class GraphTraversalAlgorithm {
             }
         }
 
-        logger.info("聚类完成，生成 {} 个聚类", clusters.size());
+        logger.info("Clustering completed, generated {} clusters", clusters.size());
         return clusters;
     }
 
     /**
-     * 计算余弦相似度
+     * Calculate cosine similarity
      */
     private double calculateCosineSimilarity(List<Double> vector1, List<Double> vector2) {
         if (vector1.size() != vector2.size()) {
@@ -268,25 +268,25 @@ public class GraphTraversalAlgorithm {
     }
 
     /**
-     * 图模式匹配
+     * Graph pattern matching
      */
     public List<Map<String, Object>> patternMatching(String pattern, Map<String, Object> parameters) {
-        logger.debug("执行图模式匹配: {}", pattern);
+        logger.debug("Executing graph pattern matching: {}", pattern);
 
         try {
             return graphService.executeCypher(pattern, parameters);
         } catch (Exception e) {
-            logger.error("图模式匹配失败: {}", pattern, e);
+            logger.error("Graph pattern matching failed: {}", pattern, e);
             return List.of();
         }
     }
 
     /**
-     * 动态图遍历
+     * Dynamic graph traversal
      */
     public List<Map<String, Object>> dynamicTraversal(String startEntity, List<String> relationshipTypes, 
                                                      int maxDepth, int maxResults) {
-        logger.debug("动态图遍历，起始实体: {}, 关系类型: {}", startEntity, relationshipTypes);
+        logger.debug("Dynamic graph traversal, start entity: {}, relationship types: {}", startEntity, relationshipTypes);
 
         String relationshipFilter = relationshipTypes.isEmpty() ? "" : 
                 "WHERE type(r) IN " + relationshipTypes.toString().replace("[", "['").replace("]", "']").replace(", ", "', '");
@@ -309,4 +309,3 @@ public class GraphTraversalAlgorithm {
         return graphService.executeCypher(cypher, params);
     }
 }
-

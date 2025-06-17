@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    active: test
+    
+graph-rag:
+  neo4j:
+    uri: ${TEST_NEO4J_URI:bolt://localhost:7687}
+    username: ${TEST_NEO4J_USERNAME:neo4j}
+    password: ${TEST_NEO4J_PASSWORD:testpassword}
+    database: neo4j
+
+# 禁用 LLM 相關功能在測試環境
+openai:
+  api-key: fake-key-for-test
+  base-url: http://localhost:8080/fake
+
+# 日誌配置
+logging:
+  level:
+    com.graphrag: DEBUG
+    org.neo4j: INFO
+    org.springframework.data.neo4j: DEBUG 

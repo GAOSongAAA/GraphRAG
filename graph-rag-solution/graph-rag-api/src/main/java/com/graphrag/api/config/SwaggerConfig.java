@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Swagger 配置
+ * Swagger Configuration
  */
 @Configuration
 public class SwaggerConfig {
@@ -19,7 +19,7 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Graph RAG API")
                         .version("1.0.0")
-                        .description("基于 Java、LangChain4j 和 Neo4j 的大规模图 RAG 工业级解决方案")
+                        .description("An industrial-grade large-scale graph RAG solution based on Java, LangChain4j and Neo4j")
                         .contact(new Contact()
                                 .name("Graph RAG Team")
                                 .email("support@graphrag.com")
@@ -29,4 +29,3 @@ public class SwaggerConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")));
     }
 }
-

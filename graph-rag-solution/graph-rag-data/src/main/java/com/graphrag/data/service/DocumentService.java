@@ -35,6 +35,43 @@ public class DocumentService {
     }
 
     /**
+     * 查找或創建文檔 - 如果標題已存在則返回現有文檔，否則創建新文檔
+     */
+    public DocumentNode findOrCreateDocument(DocumentNode document) {
+        Optional<DocumentNode> existing = findByTitle(document.getTitle());
+        if (existing.isPresent()) {
+            DocumentNode existingDoc = existing.get();
+            logger.info("文檔已存在，返回現有文檔，ID: {}, 標題: {}", existingDoc.getId(), existingDoc.getTitle());
+            
+            // 更新內容和元數據（如果有變化）
+            boolean needUpdate = false;
+            if (!existingDoc.getContent().equals(document.getContent())) {
+                existingDoc.setContent(document.getContent());
+                needUpdate = true;
+            }
+            if (document.getMetadata() != null && !document.getMetadata().equals(existingDoc.getMetadata())) {
+                existingDoc.setMetadata(document.getMetadata());
+                needUpdate = true;
+            }
+            if (document.getSource() != null && !document.getSource().equals(existingDoc.getSource())) {
+                existingDoc.setSource(document.getSource());
+                needUpdate = true;
+            }
+            
+            if (needUpdate) {
+                existingDoc.setUpdatedAt(LocalDateTime.now());
+                existingDoc = documentRepository.save(existingDoc);
+                logger.info("更新現有文檔，ID: {}", existingDoc.getId());
+            }
+            
+            return existingDoc;
+        } else {
+            // 創建新文檔
+            return saveDocument(document);
+        }
+    }
+
+    /**
      * 根据ID查找文档
      */
     public Optional<DocumentNode> findById(Long id) {
@@ -74,22 +111,22 @@ public class DocumentService {
     /**
      * 更新文档嵌入向量
      */
-    public DocumentNode updateEmbedding(Long documentId, List<Double> embedding) {
-        Optional<DocumentNode> optionalDoc = documentRepository.findById(documentId);
+    public DocumentNode updateEmbedding(Long id, List<Double> embedding) {
+        Optional<DocumentNode> optionalDoc = documentRepository.findById(id);
         if (optionalDoc.isPresent()) {
             DocumentNode document = optionalDoc.get();
             document.setEmbedding(embedding);
             document.setUpdatedAt(LocalDateTime.now());
             return documentRepository.save(document);
         }
-        throw new RuntimeException("文档不存在，ID: " + documentId);
+        throw new RuntimeException("文档不存在，ID: " + id);
     }
 
     /**
      * 删除文档
      */
     public void deleteDocument(Long id) {
-        documentRepository.deleteById(id);
+        documentRepository.deleteById(id);   
         logger.info("删除文档成功，ID: {}", id);
     }
 

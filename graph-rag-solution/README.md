@@ -194,32 +194,3 @@ kubectl scale deployment graph-rag-app --replicas=5
 # 扩展 Neo4j 集群
 helm install neo4j-cluster neo4j/neo4j-cluster
 ```
-
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
-
-## 📄 许可证
-
-本项目采用 Apache 2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 🙏 致谢
-
-- [LangChain4j](https://github.com/langchain4j/langchain4j) - Java LLM 框架
-- [Neo4j](https://neo4j.com/) - 图数据库
-- [Spring Boot](https://spring.io/projects/spring-boot) - 应用框架
-
-## 📞 联系我们
-
-- **项目主页：** https://github.com/your-repo/graph-rag-solution
-- **问题反馈：** https://github.com/your-repo/graph-rag-solution/issues
-- **邮箱：** support@graphrag.com
-
----
-
-**由 Manus AI 构建 🤖**
-

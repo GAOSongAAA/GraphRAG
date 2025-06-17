@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * 向量化服务
+ * Embedding Service
  */
 @Service
 public class EmbeddingService {
@@ -30,30 +30,30 @@ public class EmbeddingService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     /**
-     * 生成文本嵌入向量
+     * Generate text embedding vector
      */
     public List<Double> embedText(String text) {
         try {
             Response<Embedding> response = embeddingModel.embed(text);
             List<Float> floatVector = response.content().vectorAsList();
             List<Double> vector = floatVector.stream().map(Float::doubleValue).collect(Collectors.toList());
-            logger.debug("生成嵌入向量成功，文本长度: {}, 向量维度: {}", text.length(), vector.size());
+            logger.debug("Generated embedding vector successfully, text length: {}, vector dimension: {}", text.length(), vector.size());
             return vector;
         } catch (Exception e) {
-            logger.error("生成嵌入向量失败，文本: {}", text.substring(0, Math.min(100, text.length())), e);
-            throw new RuntimeException("嵌入向量生成失败", e);
+            logger.error("Failed to generate embedding vector, text: {}", text.substring(0, Math.min(100, text.length())), e);
+            throw new RuntimeException("Failed to generate embedding vector", e);
         }
     }
 
     /**
-     * 生成文本段嵌入向量
+     * Generate text segment embedding vector
      */
     public List<Double> embedTextSegment(TextSegment segment) {
         return embedText(segment.text());
     }
 
     /**
-     * 批量生成嵌入向量
+     * Batch generate embedding vectors
      */
     public List<List<Double>> embedTexts(List<String> texts) {
         try {
@@ -68,13 +68,13 @@ public class EmbeddingService {
                 .collect(Collectors.toList());
             return vectors;
         } catch (Exception e) {
-            logger.error("批量生成嵌入向量失败，文本数量: {}", texts.size(), e);
-            throw new RuntimeException("批量嵌入向量生成失败", e);
+            logger.error("Failed to batch generate embedding vectors, text count: {}", texts.size(), e);
+            throw new RuntimeException("Failed to batch generate embedding vectors", e);
         }
     }
 
     /**
-     * 批量生成文本段嵌入向量
+     * Batch generate text segment embedding vectors
      */
     public List<List<Double>> embedTextSegments(List<TextSegment> segments) {
         try {
@@ -84,31 +84,31 @@ public class EmbeddingService {
                 .collect(Collectors.toList());
             return vectors;
         } catch (Exception e) {
-            logger.error("批量生成文本段嵌入向量失败，段数量: {}", segments.size(), e);
-            throw new RuntimeException("批量文本段嵌入向量生成失败", e);
+            logger.error("Failed to batch generate text segment embedding vectors, segment count: {}", segments.size(), e);
+            throw new RuntimeException("Failed to batch generate text segment embedding vectors", e);
         }
     }
 
     /**
-     * 异步生成嵌入向量
+     * Asynchronously generate embedding vector
      */
     public CompletableFuture<List<Double>> embedTextAsync(String text) {
         return CompletableFuture.supplyAsync(() -> embedText(text), executorService);
     }
 
     /**
-     * 异步批量生成嵌入向量
+     * Asynchronously batch generate embedding vectors
      */
     public CompletableFuture<List<List<Double>>> embedTextsAsync(List<String> texts) {
         return CompletableFuture.supplyAsync(() -> embedTexts(texts), executorService);
     }
 
     /**
-     * 计算余弦相似度
+     * Calculate cosine similarity
      */
     public double cosineSimilarity(List<Double> vector1, List<Double> vector2) {
         if (vector1.size() != vector2.size()) {
-            throw new IllegalArgumentException("向量维度不匹配");
+            throw new IllegalArgumentException("Vector dimensions do not match");
         }
 
         double dotProduct = 0.0;
@@ -129,7 +129,7 @@ public class EmbeddingService {
     }
 
     /**
-     * 查找最相似的向量
+     * Find the most similar vector
      */
     public int findMostSimilar(List<Double> queryVector, List<List<Double>> candidateVectors) {
         double maxSimilarity = -1.0;
@@ -147,7 +147,7 @@ public class EmbeddingService {
     }
 
     /**
-     * 查找前 K 个最相似的向量
+     * Find top K similar vectors
      */
     public List<Integer> findTopKSimilar(List<Double> queryVector, List<List<Double>> candidateVectors, int k) {
         List<SimilarityResult> results = new ArrayList<>();
@@ -165,7 +165,7 @@ public class EmbeddingService {
     }
 
     /**
-     * 相似度结果内部类
+     * Internal class for similarity results
      */
     private static class SimilarityResult {
         final int index;
@@ -178,10 +178,9 @@ public class EmbeddingService {
     }
 
     /**
-     * 关闭线程池
+     * Shutdown thread pool
      */
     public void shutdown() {
         executorService.shutdown();
     }
 }
-

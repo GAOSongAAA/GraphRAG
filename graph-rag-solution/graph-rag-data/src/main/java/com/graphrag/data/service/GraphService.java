@@ -86,7 +86,7 @@ public class GraphService {
      */
     public void createDocumentEntityRelationship(Long documentId, String entityName, String entityType) {
         String cypher = """
-            MATCH (d:Document) WHERE id(d) = $documentId
+            MATCH (d:Document) WHERE d.id = $documentId
             MERGE (e:Entity {name: $entityName, type: $entityType})
             MERGE (d)-[r:CONTAINS]->(e)
             SET r.created_at = datetime()

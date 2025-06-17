@@ -3,33 +3,25 @@ package com.graphrag.data.entity;
 import org.springframework.data.neo4j.core.schema.*;
 
 /**
- * 实体关系
+ * Relationship between two Entity nodes.
  */
 @RelationshipProperties
 public class EntityRelationship {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue                      // internalId
     private Long id;
 
     @TargetNode
     private EntityNode target;
 
-    @Property("type")
     private String type;
-
-    @Property("description")
     private String description;
+    private Double weight = 1.0;
 
-    @Property("weight")
-    private Double weight;
-
-    public EntityRelationship() {
-        this.weight = 1.0;
-    }
+    public EntityRelationship() {}
 
     public EntityRelationship(EntityNode target, String type) {
-        this();
         this.target = target;
         this.type = type;
     }
@@ -44,7 +36,7 @@ public class EntityRelationship {
         this.weight = weight;
     }
 
-    // Getters and Setters
+    // Getters / Setters ---------------------------------
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -60,4 +52,3 @@ public class EntityRelationship {
     public Double getWeight() { return weight; }
     public void setWeight(Double weight) { this.weight = weight; }
 }
-

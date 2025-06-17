@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 结果排序和过滤算法
+ * Result ranking and filtering algorithm
  */
 @Component
 public class ResultRankingAlgorithm {
@@ -19,11 +19,11 @@ public class ResultRankingAlgorithm {
     private static final Logger logger = LoggerFactory.getLogger(ResultRankingAlgorithm.class);
 
     /**
-     * 多因子排序
+     * Multi-factor ranking
      */
     public <T> List<ScoredResult<T>> multiFactorRanking(List<ScoredResult<T>> results, 
                                                        Map<String, Double> factorWeights) {
-        logger.debug("多因子排序，结果数量: {}, 因子数量: {}", results.size(), factorWeights.size());
+        logger.debug("Multi-factor ranking, result count: {}, factor count: {}", results.size(), factorWeights.size());
 
         return results.stream()
                 .map(result -> {
@@ -35,13 +35,13 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算调整后的评分
+     * Calculate adjusted score
      */
     private <T> double calculateAdjustedScore(ScoredResult<T> result, Map<String, Double> factorWeights) {
         double baseScore = result.getScore();
         double adjustedScore = baseScore;
 
-        // 根据不同因子调整评分
+        // Adjust score based on different factors
         for (Map.Entry<String, Double> factor : factorWeights.entrySet()) {
             String factorName = factor.getKey();
             double weight = factor.getValue();
@@ -66,36 +66,36 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算时效性评分
+     * Calculate recency score
      */
     private <T> double calculateRecencyScore(T item) {
-        // 简化的时效性评分逻辑
+        // Simplified recency scoring logic
         if (item instanceof DocumentNode) {
             DocumentNode doc = (DocumentNode) item;
             if (doc.getCreatedAt() != null) {
                 long daysSinceCreation = java.time.Duration.between(
                         doc.getCreatedAt(), java.time.LocalDateTime.now()).toDays();
-                return Math.max(0.0, 1.0 - (daysSinceCreation / 365.0)); // 一年内的文档得分较高
+                return Math.max(0.0, 1.0 - (daysSinceCreation / 365.0)); // Higher score for documents within a year
             }
         }
-        return 0.5; // 默认中等评分
+        return 0.5; // Default medium score
     }
 
     /**
-     * 计算权威性评分
+     * Calculate authority score
      */
     private <T> double calculateAuthorityScore(T item) {
-        // 简化的权威性评分逻辑
+        // Simplified authority scoring logic
         if (item instanceof DocumentNode) {
             DocumentNode doc = (DocumentNode) item;
             String source = doc.getSource();
             if (source != null) {
-                // 根据来源判断权威性
-                if (source.contains("官方") || source.contains("权威")) {
+                // Judge authority based on source
+                if (source.contains("official") || source.contains("authoritative")) {
                     return 0.9;
-                } else if (source.contains("学术") || source.contains("研究")) {
+                } else if (source.contains("academic") || source.contains("research")) {
                     return 0.8;
-                } else if (source.contains("新闻") || source.contains("媒体")) {
+                } else if (source.contains("news") || source.contains("media")) {
                     return 0.6;
                 }
             }
@@ -104,13 +104,13 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算完整性评分
+     * Calculate completeness score
      */
     private <T> double calculateCompletenessScore(T item) {
         if (item instanceof DocumentNode) {
             DocumentNode doc = (DocumentNode) item;
             int contentLength = doc.getContent() != null ? doc.getContent().length() : 0;
-            // 内容长度越长，完整性评分越高（但有上限）
+            // Longer content means higher completeness score (with upper limit)
             return Math.min(1.0, contentLength / 5000.0);
         } else if (item instanceof EntityNode) {
             EntityNode entity = (EntityNode) item;
@@ -122,20 +122,20 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算流行度评分
+     * Calculate popularity score
      */
     private <T> double calculatePopularityScore(T item) {
-        // 简化的流行度评分逻辑
-        // 在实际应用中，可以基于访问次数、引用次数等
-        return 0.5; // 默认中等评分
+        // Simplified popularity scoring logic
+        // In practice, can be based on view count, citation count, etc.
+        return 0.5; // Default medium score
     }
 
     /**
-     * 基于查询相关性的过滤
+     * Filter by query relevance
      */
     public <T> List<ScoredResult<T>> filterByRelevance(List<ScoredResult<T>> results, 
                                                       double minRelevanceThreshold) {
-        logger.debug("基于相关性过滤，阈值: {}", minRelevanceThreshold);
+        logger.debug("Filtering by relevance, threshold: {}", minRelevanceThreshold);
 
         return results.stream()
                 .filter(result -> result.getScore() >= minRelevanceThreshold)
@@ -143,11 +143,11 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 多样性过滤
+     * Diversity filtering
      */
     public List<ScoredResult<DocumentNode>> diversityFilter(List<ScoredResult<DocumentNode>> results, 
                                                            double diversityThreshold, int maxResults) {
-        logger.debug("多样性过滤，阈值: {}, 最大结果数: {}", diversityThreshold, maxResults);
+        logger.debug("Diversity filtering, threshold: {}, max results: {}", diversityThreshold, maxResults);
 
         List<ScoredResult<DocumentNode>> filtered = new ArrayList<>();
         
@@ -175,15 +175,15 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算内容相似度
+     * Calculate content similarity
      */
     private double calculateContentSimilarity(DocumentNode doc1, DocumentNode doc2) {
-        // 简化的内容相似度计算
+        // Simplified content similarity calculation
         if (doc1.getEmbedding() != null && doc2.getEmbedding() != null) {
             return cosineSimilarity(doc1.getEmbedding(), doc2.getEmbedding());
         }
         
-        // 基于标题和来源的简单相似度
+        // Simple similarity based on title and source
         String title1 = doc1.getTitle() != null ? doc1.getTitle().toLowerCase() : "";
         String title2 = doc2.getTitle() != null ? doc2.getTitle().toLowerCase() : "";
         String source1 = doc1.getSource() != null ? doc1.getSource().toLowerCase() : "";
@@ -196,7 +196,7 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 计算字符串相似度
+     * Calculate string similarity
      */
     private double calculateStringSimilarity(String s1, String s2) {
         if (s1.equals(s2)) return 1.0;
@@ -215,7 +215,7 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 余弦相似度计算
+     * Calculate cosine similarity
      */
     private double cosineSimilarity(List<Double> vector1, List<Double> vector2) {
         if (vector1.size() != vector2.size()) {
@@ -240,18 +240,18 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 时间窗口过滤
+     * Time window filtering
      */
     public List<ScoredResult<DocumentNode>> timeWindowFilter(List<ScoredResult<DocumentNode>> results, 
                                                             java.time.LocalDateTime startTime, 
                                                             java.time.LocalDateTime endTime) {
-        logger.debug("时间窗口过滤，开始时间: {}, 结束时间: {}", startTime, endTime);
+        logger.debug("Time window filtering, start time: {}, end time: {}", startTime, endTime);
 
         return results.stream()
                 .filter(result -> {
                     DocumentNode doc = result.getItem();
                     if (doc.getCreatedAt() == null) {
-                        return true; // 没有时间信息的文档保留
+                        return true; // Keep documents without time information
                     }
                     return !doc.getCreatedAt().isBefore(startTime) && 
                            !doc.getCreatedAt().isAfter(endTime);
@@ -260,12 +260,12 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 来源过滤
+     * Source filtering
      */
     public List<ScoredResult<DocumentNode>> sourceFilter(List<ScoredResult<DocumentNode>> results, 
                                                         Set<String> allowedSources, 
                                                         Set<String> blockedSources) {
-        logger.debug("来源过滤，允许来源: {}, 禁止来源: {}", allowedSources.size(), blockedSources.size());
+        logger.debug("Source filtering, allowed sources: {}, blocked sources: {}", allowedSources.size(), blockedSources.size());
 
         return results.stream()
                 .filter(result -> {
@@ -273,15 +273,15 @@ public class ResultRankingAlgorithm {
                     String source = doc.getSource();
                     
                     if (source == null) {
-                        return allowedSources.isEmpty(); // 如果没有限制允许来源，则保留
+                        return allowedSources.isEmpty(); // Keep if no source restrictions
                     }
                     
-                    // 检查是否在禁止列表中
+                    // Check if in blocked list
                     if (blockedSources.contains(source)) {
                         return false;
                     }
                     
-                    // 检查是否在允许列表中（如果有限制）
+                    // Check if in allowed list (if restricted)
                     if (!allowedSources.isEmpty()) {
                         return allowedSources.contains(source);
                     }
@@ -292,49 +292,49 @@ public class ResultRankingAlgorithm {
     }
 
     /**
-     * 综合排序和过滤
+     * Comprehensive ranking and filtering
      */
     public List<ScoredResult<DocumentNode>> comprehensiveRankingAndFiltering(
             List<ScoredResult<DocumentNode>> results,
             RankingConfig config) {
         
-        logger.debug("综合排序和过滤，配置: {}", config);
+        logger.debug("Comprehensive ranking and filtering, config: {}", config);
 
         List<ScoredResult<DocumentNode>> processed = new ArrayList<>(results);
 
-        // 1. 相关性过滤
+        // 1. Relevance filtering
         if (config.getMinRelevanceThreshold() > 0) {
             processed = filterByRelevance(processed, config.getMinRelevanceThreshold());
         }
 
-        // 2. 时间窗口过滤
+        // 2. Time window filtering
         if (config.getStartTime() != null && config.getEndTime() != null) {
             processed = timeWindowFilter(processed, config.getStartTime(), config.getEndTime());
         }
 
-        // 3. 来源过滤
+        // 3. Source filtering
         if (!config.getAllowedSources().isEmpty() || !config.getBlockedSources().isEmpty()) {
             processed = sourceFilter(processed, config.getAllowedSources(), config.getBlockedSources());
         }
 
-        // 4. 多因子排序
+        // 4. Multi-factor ranking
         if (!config.getFactorWeights().isEmpty()) {
             processed = multiFactorRanking(processed, config.getFactorWeights());
         }
 
-        // 5. 多样性过滤
+        // 5. Diversity filtering
         if (config.getDiversityThreshold() > 0) {
             processed = diversityFilter(processed, config.getDiversityThreshold(), config.getMaxResults());
         } else if (config.getMaxResults() > 0) {
             processed = processed.stream().limit(config.getMaxResults()).collect(Collectors.toList());
         }
 
-        logger.info("排序和过滤完成，最终结果数量: {}", processed.size());
+        logger.info("Ranking and filtering completed, final result count: {}", processed.size());
         return processed;
     }
 
     /**
-     * 排序配置类
+     * Ranking configuration class
      */
     public static class RankingConfig {
         private double minRelevanceThreshold = 0.0;
@@ -378,4 +378,3 @@ public class ResultRankingAlgorithm {
         }
     }
 }
-

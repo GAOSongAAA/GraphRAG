@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class RelationshipEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue                      // internalId
     private Long id;
 
     @Property("type")

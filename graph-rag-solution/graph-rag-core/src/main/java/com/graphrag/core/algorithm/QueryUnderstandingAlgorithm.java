@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 查询理解和意图识别算法
+ * Query understanding and intent recognition algorithm
  */
 @Component
 public class QueryUnderstandingAlgorithm {
@@ -27,94 +27,94 @@ public class QueryUnderstandingAlgorithm {
     @Autowired
     private EmbeddingService embeddingService;
 
-    // 查询分析提示模板
+    // Query analysis prompt template
     private static final PromptTemplate QUERY_ANALYSIS_TEMPLATE = PromptTemplate.from("""
-            请分析以下用户查询，提取关键信息：
+            Please analyze the following user query and extract key information:
             
-            查询：{{query}}
+            Query: {{query}}
             
-            请按照以下格式输出：
+            Please output in the following format:
             
-            查询类型：[事实查询/概念解释/比较分析/推理问答/列表查询/其他]
-            关键实体：[实体1, 实体2, ...]
-            查询意图：[简要描述用户的查询意图]
-            相关概念：[概念1, 概念2, ...]
-            查询复杂度：[简单/中等/复杂]
-            期望答案类型：[简短回答/详细解释/列表/比较表格/其他]
+            Query Type: [Factual Query/Concept Explanation/Comparative Analysis/Reasoning Q&A/List Query/Others]
+            Key Entities: [Entity1, Entity2, ...]
+            Query Intent: [Brief description of user's query intent]
+            Related Concepts: [Concept1, Concept2, ...]
+            Query Complexity: [Simple/Medium/Complex]
+            Expected Answer Type: [Brief Answer/Detailed Explanation/List/Comparison Table/Others]
             
-            注意：请确保提取的信息准确且有用。
+            Note: Please ensure the extracted information is accurate and useful.
             """);
 
     /**
-     * 分析查询
+     * Analyze query
      */
     public QueryAnalysis analyzeQuery(String query) {
-        logger.debug("开始分析查询: {}", query);
+        logger.debug("Start analyzing query: {}", query);
 
         try {
-            // 1. 使用 LLM 进行查询分析
+            // 1. Use LLM for query analysis
             Prompt prompt = QUERY_ANALYSIS_TEMPLATE.apply(Map.of("query", query));
             String response = chatLanguageModel.generate(prompt.text());
 
-            // 2. 解析 LLM 响应
+            // 2. Parse LLM response
             QueryAnalysis analysis = parseQueryAnalysis(response, query);
 
-            // 3. 补充分析信息
+            // 3. Enhance analysis information
             enhanceAnalysis(analysis, query);
 
-            logger.info("查询分析完成，类型: {}, 复杂度: {}", analysis.getQueryType(), analysis.getComplexity());
+            logger.info("Query analysis completed, type: {}, complexity: {}", analysis.getQueryType(), analysis.getComplexity());
             return analysis;
 
         } catch (Exception e) {
-            logger.error("查询分析失败", e);
+            logger.error("Query analysis failed", e);
             return createFallbackAnalysis(query);
         }
     }
 
     /**
-     * 解析查询分析响应
+     * Parse query analysis response
      */
     private QueryAnalysis parseQueryAnalysis(String response, String originalQuery) {
         QueryAnalysis analysis = new QueryAnalysis(originalQuery);
 
-        // 提取查询类型
-        String queryType = extractField(response, "查询类型");
-        analysis.setQueryType(queryType != null ? queryType : "其他");
+        // Extract query type
+        String queryType = extractField(response, "Query Type");
+        analysis.setQueryType(queryType != null ? queryType : "Others");
 
-        // 提取关键实体
-        String entitiesStr = extractField(response, "关键实体");
+        // Extract key entities
+        String entitiesStr = extractField(response, "Key Entities");
         if (entitiesStr != null) {
             List<String> entities = parseList(entitiesStr);
             analysis.setKeyEntities(entities);
         }
 
-        // 提取查询意图
-        String intent = extractField(response, "查询意图");
-        analysis.setIntent(intent != null ? intent : "未知意图");
+        // Extract query intent
+        String intent = extractField(response, "Query Intent");
+        analysis.setIntent(intent != null ? intent : "Unknown Intent");
 
-        // 提取相关概念
-        String conceptsStr = extractField(response, "相关概念");
+        // Extract related concepts
+        String conceptsStr = extractField(response, "Related Concepts");
         if (conceptsStr != null) {
             List<String> concepts = parseList(conceptsStr);
             analysis.setRelatedConcepts(concepts);
         }
 
-        // 提取查询复杂度
-        String complexity = extractField(response, "查询复杂度");
-        analysis.setComplexity(complexity != null ? complexity : "中等");
+        // Extract query complexity
+        String complexity = extractField(response, "Query Complexity");
+        analysis.setComplexity(complexity != null ? complexity : "Medium");
 
-        // 提取期望答案类型
-        String answerType = extractField(response, "期望答案类型");
-        analysis.setExpectedAnswerType(answerType != null ? answerType : "详细解释");
+        // Extract expected answer type
+        String answerType = extractField(response, "Expected Answer Type");
+        analysis.setExpectedAnswerType(answerType != null ? answerType : "Detailed Explanation");
 
         return analysis;
     }
 
     /**
-     * 提取字段值
+     * Extract field value
      */
     private String extractField(String text, String fieldName) {
-        Pattern pattern = Pattern.compile(fieldName + "：\\s*\\[?([^\\]\\n]+)\\]?");
+        Pattern pattern = Pattern.compile(fieldName + ":\\s*\\[?([^\\]\\n]+)\\]?");
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
             return matcher.group(1).trim();
@@ -123,7 +123,7 @@ public class QueryUnderstandingAlgorithm {
     }
 
     /**
-     * 解析列表
+     * Parse list
      */
     private List<String> parseList(String listStr) {
         if (listStr == null || listStr.trim().isEmpty()) {
@@ -137,84 +137,84 @@ public class QueryUnderstandingAlgorithm {
     }
 
     /**
-     * 增强分析信息
+     * Enhance analysis information
      */
     private void enhanceAnalysis(QueryAnalysis analysis, String query) {
-        // 1. 检测查询模式
+        // 1. Detect query patterns
         analysis.setQueryPatterns(detectQueryPatterns(query));
 
-        // 2. 提取时间信息
+        // 2. Extract temporal information
         analysis.setTemporalInfo(extractTemporalInfo(query));
 
-        // 3. 检测比较意图
+        // 3. Detect comparative intent
         analysis.setComparative(detectComparative(query));
 
-        // 4. 计算查询向量
+        // 4. Calculate query vector
         List<Double> queryVector = embeddingService.embedText(query);
         analysis.setQueryVector(queryVector);
 
-        // 5. 生成扩展查询
+        // 5. Generate expanded queries
         analysis.setExpandedQueries(generateExpandedQueries(analysis));
     }
 
     /**
-     * 检测查询模式
+     * Detect query patterns
      */
     private List<String> detectQueryPatterns(String query) {
         List<String> patterns = new ArrayList<>();
         String lowerQuery = query.toLowerCase();
 
-        // 疑问词模式
-        if (lowerQuery.matches(".*\\b(什么|什么是|何为|如何|怎么|为什么|哪个|哪些|谁|何时|何地)\\b.*")) {
-            patterns.add("疑问词查询");
+        // Question word pattern
+        if (lowerQuery.matches(".*\\b(what|what is|how|why|which|who|when|where)\\b.*")) {
+            patterns.add("Question Word Query");
         }
 
-        // 定义模式
-        if (lowerQuery.matches(".*\\b(是什么|定义|含义|概念)\\b.*")) {
-            patterns.add("定义查询");
+        // Definition pattern
+        if (lowerQuery.matches(".*\\b(is|define|meaning|concept)\\b.*")) {
+            patterns.add("Definition Query");
         }
 
-        // 比较模式
-        if (lowerQuery.matches(".*\\b(比较|对比|区别|差异|相同|不同)\\b.*")) {
-            patterns.add("比较查询");
+        // Comparison pattern
+        if (lowerQuery.matches(".*\\b(compare|contrast|difference|similarity|different|same)\\b.*")) {
+            patterns.add("Comparison Query");
         }
 
-        // 列表模式
-        if (lowerQuery.matches(".*\\b(列出|列举|有哪些|包括|种类)\\b.*")) {
-            patterns.add("列表查询");
+        // List pattern
+        if (lowerQuery.matches(".*\\b(list|enumerate|what are|include|types)\\b.*")) {
+            patterns.add("List Query");
         }
 
-        // 因果模式
-        if (lowerQuery.matches(".*\\b(原因|导致|影响|结果|后果)\\b.*")) {
-            patterns.add("因果查询");
+        // Causal pattern
+        if (lowerQuery.matches(".*\\b(cause|lead to|impact|result|effect)\\b.*")) {
+            patterns.add("Causal Query");
         }
 
-        // 过程模式
-        if (lowerQuery.matches(".*\\b(步骤|过程|流程|方法|如何)\\b.*")) {
-            patterns.add("过程查询");
+        // Process pattern
+        if (lowerQuery.matches(".*\\b(steps|process|procedure|method|how to)\\b.*")) {
+            patterns.add("Process Query");
         }
 
         return patterns;
     }
 
     /**
-     * 提取时间信息
+     * Extract temporal information
      */
     private Map<String, String> extractTemporalInfo(String query) {
         Map<String, String> temporalInfo = new HashMap<>();
 
-        // 检测时间表达式
-        Pattern timePattern = Pattern.compile("\\b(\\d{4})年|\\b(\\d{1,2})月|\\b(\\d{1,2})日|\\b(今天|昨天|明天|最近|现在|当前|过去|未来)\\b");
+        // Detect time expressions
+        Pattern timePattern = Pattern.compile("\\b(\\d{4})\\s*year|\\b(\\d{1,2})\\s*month|\\b(\\d{1,2})\\s*day|\\b(today|yesterday|tomorrow|recent|now|current|past|future)\\b");
         Matcher matcher = timePattern.matcher(query);
 
         while (matcher.find()) {
             String timeExpr = matcher.group();
-            if (timeExpr.contains("年")) {
-                temporalInfo.put("year", timeExpr.replace("年", ""));
-            } else if (timeExpr.contains("月")) {
-                temporalInfo.put("month", timeExpr.replace("月", ""));
-            } else if (timeExpr.contains("日")) {
-                temporalInfo.put("day", timeExpr.replace("日", ""));
+            if (timeExpr.contains("year")) {
+                temporalInfo.put("year", timeExpr.replace("year", "").trim());
+            } else if (timeExpr.contains("month")) {
+                temporalInfo.put("month", timeExpr.replace("month", "").trim());
+            } else if (timeExpr.contains("day")) {
+                temporalInfo.put("day", timeExpr.replace("day", "").trim());
             } else {
                 temporalInfo.put("relative", timeExpr);
             }
@@ -224,48 +224,48 @@ public class QueryUnderstandingAlgorithm {
     }
 
     /**
-     * 检测比较意图
+     * Detect comparative intent
      */
     private boolean detectComparative(String query) {
         String lowerQuery = query.toLowerCase();
-        String[] comparativeWords = {"比较", "对比", "区别", "差异", "相同", "不同", "优缺点", "vs", "和", "与"};
+        String[] comparativeWords = {"compare", "contrast", "difference", "similarity", "same", "different", "pros and cons", "vs", "and", "with"};
         
         return Arrays.stream(comparativeWords)
                 .anyMatch(lowerQuery::contains);
     }
 
     /**
-     * 生成扩展查询
+     * Generate expanded queries
      */
     private List<String> generateExpandedQueries(QueryAnalysis analysis) {
         List<String> expandedQueries = new ArrayList<>();
         String originalQuery = analysis.getOriginalQuery();
 
-        // 基于关键实体生成扩展查询
+        // Generate expanded queries based on key entities
         for (String entity : analysis.getKeyEntities()) {
-            expandedQueries.add(entity + "的定义");
-            expandedQueries.add(entity + "的特点");
-            expandedQueries.add(entity + "的应用");
+            expandedQueries.add("definition of " + entity);
+            expandedQueries.add("characteristics of " + entity);
+            expandedQueries.add("applications of " + entity);
         }
 
-        // 基于相关概念生成扩展查询
+        // Generate expanded queries based on related concepts
         for (String concept : analysis.getRelatedConcepts()) {
-            expandedQueries.add(concept + "与" + String.join("", analysis.getKeyEntities()) + "的关系");
+            expandedQueries.add("relationship between " + concept + " and " + String.join("", analysis.getKeyEntities()));
         }
 
-        // 基于查询类型生成扩展查询
+        // Generate expanded queries based on query type
         switch (analysis.getQueryType()) {
-            case "概念解释":
-                expandedQueries.add(originalQuery + "的详细解释");
-                expandedQueries.add(originalQuery + "的例子");
+            case "Concept Explanation":
+                expandedQueries.add("detailed explanation of " + originalQuery);
+                expandedQueries.add("examples of " + originalQuery);
                 break;
-            case "比较分析":
-                expandedQueries.add(originalQuery + "的优缺点");
-                expandedQueries.add(originalQuery + "的相似点");
+            case "Comparative Analysis":
+                expandedQueries.add("advantages and disadvantages of " + originalQuery);
+                expandedQueries.add("similarities in " + originalQuery);
                 break;
-            case "推理问答":
-                expandedQueries.add(originalQuery + "的原因");
-                expandedQueries.add(originalQuery + "的影响");
+            case "Reasoning Q&A":
+                expandedQueries.add("reasons for " + originalQuery);
+                expandedQueries.add("impacts of " + originalQuery);
                 break;
         }
 
@@ -276,28 +276,28 @@ public class QueryUnderstandingAlgorithm {
     }
 
     /**
-     * 创建备用分析
+     * Create fallback analysis
      */
     private QueryAnalysis createFallbackAnalysis(String query) {
         QueryAnalysis analysis = new QueryAnalysis(query);
-        analysis.setQueryType("其他");
-        analysis.setIntent("一般查询");
-        analysis.setComplexity("中等");
-        analysis.setExpectedAnswerType("详细解释");
+        analysis.setQueryType("Others");
+        analysis.setIntent("General Query");
+        analysis.setComplexity("Medium");
+        analysis.setExpectedAnswerType("Detailed Explanation");
         analysis.setKeyEntities(extractSimpleEntities(query));
-        analysis.setQueryPatterns(List.of("一般查询"));
+        analysis.setQueryPatterns(List.of("General Query"));
         
         return analysis;
     }
 
     /**
-     * 简单实体提取
+     * Simple entity extraction
      */
     private List<String> extractSimpleEntities(String query) {
-        // 简单的实体提取逻辑，基于常见模式
+        // Simple entity extraction logic based on common patterns
         List<String> entities = new ArrayList<>();
         
-        // 提取可能的实体（大写开头的词组）
+        // Extract potential entities (capitalized word groups)
         Pattern entityPattern = Pattern.compile("\\b[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*\\b");
         Matcher matcher = entityPattern.matcher(query);
         
@@ -309,7 +309,7 @@ public class QueryUnderstandingAlgorithm {
     }
 
     /**
-     * 查询分析结果类
+     * Query analysis result class
      */
     public static class QueryAnalysis {
         private final String originalQuery;
@@ -372,4 +372,3 @@ public class QueryUnderstandingAlgorithm {
         }
     }
 }
-

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 缓存服务
+ * Cache Service
  */
 @Service
 public class CacheService {
@@ -24,11 +24,11 @@ public class CacheService {
     private GraphRagRetrievalService retrievalService;
 
     /**
-     * 缓存查询结果
+     * Cache query results
      */
     @Cacheable(value = "queryResults", key = "#request.question + '_' + #request.retrievalMode")
     public GraphRagResponse getCachedQueryResult(GraphRagRequest request) {
-        logger.debug("缓存未命中，执行查询: {}", request.getQuestion());
+        logger.debug("Cache miss, executing query: {}", request.getQuestion());
         
         if ("hybrid".equals(request.getRetrievalMode())) {
             return retrievalService.hybridRetrieve(request);
@@ -38,54 +38,53 @@ public class CacheService {
     }
 
     /**
-     * 异步预热缓存
+     * Asynchronously pre-warm cache
      */
     @Async("graphRagExecutor")
     public CompletableFuture<Void> preWarmCache(String[] commonQueries) {
-        logger.info("开始预热缓存，查询数量: {}", commonQueries.length);
+        logger.info("Starting cache pre-warming, query count: {}", commonQueries.length);
         
         for (String query : commonQueries) {
             try {
                 GraphRagRequest request = new GraphRagRequest(query);
                 getCachedQueryResult(request);
-                logger.debug("预热缓存完成: {}", query);
+                logger.debug("Cache pre-warming completed: {}", query);
             } catch (Exception e) {
-                logger.error("预热缓存失败: {}", query, e);
+                logger.error("Cache pre-warming failed: {}", query, e);
             }
         }
         
-        logger.info("缓存预热完成");
+        logger.info("Cache pre-warming completed");
         return CompletableFuture.completedFuture(null);
     }
 
     /**
-     * 缓存文档嵌入向量
+     * Cache document embedding vectors
      */
     @Cacheable(value = "documentEmbeddings", key = "#documentId")
     public java.util.List<Double> getCachedDocumentEmbedding(Long documentId) {
-        // 这里应该调用实际的嵌入生成服务
-        logger.debug("生成文档嵌入向量: {}", documentId);
-        return null; // 实际实现中应该返回嵌入向量
+        // Should call actual embedding generation service
+        logger.debug("Generating document embedding vector: {}", documentId);
+        return null; // Should return embedding vector in actual implementation
     }
 
     /**
-     * 缓存实体嵌入向量
+     * Cache entity embedding vectors
      */
     @Cacheable(value = "entityEmbeddings", key = "#entityId")
     public java.util.List<Double> getCachedEntityEmbedding(Long entityId) {
-        // 这里应该调用实际的嵌入生成服务
-        logger.debug("生成实体嵌入向量: {}", entityId);
-        return null; // 实际实现中应该返回嵌入向量
+        // Should call actual embedding generation service
+        logger.debug("Generating entity embedding vector: {}", entityId);
+        return null; // Should return embedding vector in actual implementation
     }
 
     /**
-     * 缓存图遍历结果
+     * Cache graph traversal results
      */
     @Cacheable(value = "graphTraversalResults", key = "#entityName + '_' + #maxHops")
     public java.util.List<java.util.Map<String, Object>> getCachedGraphTraversal(String entityName, int maxHops) {
-        // 这里应该调用实际的图遍历服务
-        logger.debug("执行图遍历: {}, 最大跳数: {}", entityName, maxHops);
-        return null; // 实际实现中应该返回遍历结果
+        // Should call actual graph traversal service
+        logger.debug("Executing graph traversal: {}, max hops: {}", entityName, maxHops);
+        return null; // Should return traversal results in actual implementation
     }
 }
-

@@ -116,15 +116,15 @@ public class EntityService {
     /**
      * 更新实体嵌入向量
      */
-    public EntityNode updateEmbedding(Long entityId, List<Double> embedding) {
-        Optional<EntityNode> optionalEntity = entityRepository.findById(entityId);
+    public EntityNode updateEmbedding(Long id, List<Double> embedding) {
+        Optional<EntityNode> optionalEntity = entityRepository.findById(id);
         if (optionalEntity.isPresent()) {
             EntityNode entity = optionalEntity.get();
             entity.setEmbedding(embedding);
             entity.setUpdatedAt(LocalDateTime.now());
             return entityRepository.save(entity);
         }
-        throw new RuntimeException("实体不存在，ID: " + entityId);
+        throw new RuntimeException("实体不存在，ID: " + id);
     }
 
     /**

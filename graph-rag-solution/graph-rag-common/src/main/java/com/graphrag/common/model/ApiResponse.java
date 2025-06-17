@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 
 /**
- * 统一响应结果
+ * Unified API Response
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
@@ -24,7 +24,7 @@ public class ApiResponse<T> {
         ApiResponse<T> response = new ApiResponse<>();
         response.success = true;
         response.code = "SUCCESS";
-        response.message = "操作成功";
+        response.message = "Operation successful";
         response.data = data;
         return response;
     }
@@ -66,4 +66,3 @@ public class ApiResponse<T> {
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }
-

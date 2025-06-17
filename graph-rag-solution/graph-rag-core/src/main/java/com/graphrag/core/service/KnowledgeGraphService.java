@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 知识图谱构建服务
+ * Knowledge Graph Construction Service
  */
 @Service
 public class KnowledgeGraphService {
@@ -48,67 +48,67 @@ public class KnowledgeGraphService {
     @Autowired
     private GraphService graphService;
 
-    // 实体和关系提取的提示模板
+    // Prompt template for entity and relation extraction
     private static final PromptTemplate ENTITY_EXTRACTION_TEMPLATE = PromptTemplate.from("""
-            请从以下文本中提取实体和它们之间的关系。
+            Please extract entities and their relationships from the following text.
             
-            文本：
+            Text:
             {{text}}
             
-            请按照以下格式输出：
+            Please output in the following format:
             
-            实体：
-            - 实体名称 | 实体类型 | 描述
+            Entities:
+            - Entity Name | Entity Type | Description
             
-            关系：
-            - 实体1 | 关系类型 | 实体2 | 关系描述
+            Relations:
+            - Entity1 | Relation Type | Entity2 | Relation Description
             
-            注意：
-            1. 实体类型可以是：人物、地点、组织、概念、技术、产品等
-            2. 关系类型可以是：包含、属于、位于、创建、使用、相关等
-            3. 只提取重要的实体和关系
-            4. 确保实体名称准确且一致
+            Notes:
+            1. Entity types can be: Person, Location, Organization, Concept, Technology, Product, etc.
+            2. Relation types can be: Contains, BelongsTo, LocatedIn, Creates, Uses, RelatedTo, etc.
+            3. Only extract important entities and relations
+            4. Ensure entity names are accurate and consistent
             """);
 
     /**
-     * 从文档构建知识图谱
+     * Build knowledge graph from document
      */
     public void buildKnowledgeGraphFromDocument(Document document) {
-        logger.info("开始从文档构建知识图谱，来源: {}", document.metadata().get("source"));
+        logger.info("Starting to build knowledge graph from document, source: {}", document.metadata().get("source"));
 
         try {
-            // 1. 保存文档到数据库
+            // 1. Save document to database
             DocumentNode documentNode = saveDocumentToDatabase(document);
 
-            // 2. 分割文档
+            // 2. Split document
             List<TextSegment> segments = textSplitterService.splitDocument(document);
-            logger.info("文档分割完成，生成 {} 个片段", segments.size());
+            logger.info("Document splitting completed, generated {} segments", segments.size());
 
-            // 3. 为每个片段提取实体和关系
+            // 3. Extract entities and relations for each segment
             for (int i = 0; i < segments.size(); i++) {
                 TextSegment segment = segments.get(i);
-                logger.debug("处理片段 {}/{}", i + 1, segments.size());
+                logger.debug("Processing segment {}/{}", i + 1, segments.size());
                 
                 try {
                     extractEntitiesAndRelations(segment, documentNode);
                 } catch (Exception e) {
-                    logger.error("处理片段失败: {}", segment.text().substring(0, Math.min(100, segment.text().length())), e);
+                    logger.error("Failed to process segment: {}", segment.text().substring(0, Math.min(100, segment.text().length())), e);
                 }
             }
 
-            // 4. 生成文档嵌入向量
+            // 4. Generate document embedding
             generateDocumentEmbedding(documentNode);
 
-            logger.info("知识图谱构建完成，文档: {}", documentNode.getTitle());
+            logger.info("Knowledge graph construction completed, document: {}", documentNode.getTitle());
 
         } catch (Exception e) {
-            logger.error("构建知识图谱失败", e);
-            throw new RuntimeException("知识图谱构建失败", e);
+            logger.error("Failed to build knowledge graph", e);
+            throw new RuntimeException("Knowledge graph construction failed", e);
         }
     }
 
     /**
-     * 保存文档到数据库
+     * Save document to database
      */
     private DocumentNode saveDocumentToDatabase(Document document) {
         String title = extractTitle(document.text());
@@ -117,14 +117,14 @@ public class KnowledgeGraphService {
         DocumentNode documentNode = new DocumentNode(title, document.text(), source);
         documentNode.setMetadata(document.metadata().asMap().toString());
         
-        return documentService.saveDocument(documentNode);
+        return documentService.findOrCreateDocument(documentNode);
     }
 
     /**
-     * 提取文档标题
+     * Extract document title
      */
     private String extractTitle(String text) {
-        // 简单的标题提取逻辑，取第一行或前50个字符
+        // Simple title extraction logic, take first line or first 50 characters
         String[] lines = text.split("\n");
         if (lines.length > 0 && lines[0].length() < 100) {
             return lines[0].trim();
@@ -134,34 +134,34 @@ public class KnowledgeGraphService {
     }
 
     /**
-     * 从文本片段提取实体和关系
+     * Extract entities and relations from text segment
      */
     private void extractEntitiesAndRelations(TextSegment segment, DocumentNode documentNode) {
         try {
-            // 使用 LLM 提取实体和关系
+            // Use LLM to extract entities and relations
             Prompt prompt = ENTITY_EXTRACTION_TEMPLATE.apply(Map.of("text", segment.text()));
             String response = chatLanguageModel.generate(prompt.text());
 
-            // 解析 LLM 响应
+            // Parse LLM response
             ExtractionResult result = parseExtractionResponse(response);
 
-            // 保存实体
+            // Save entities
             List<EntityNode> entities = new ArrayList<>();
             for (EntityInfo entityInfo : result.entities) {
                 EntityNode entity = entityService.findOrCreateEntity(entityInfo.name, entityInfo.type);
                 entity.setDescription(entityInfo.description);
                 
-                // 生成实体嵌入向量
+                // Generate entity embedding
                 List<Double> embedding = embeddingService.embedText(entityInfo.name + " " + entityInfo.description);
                 entity.setEmbedding(embedding);
                 
                 entities.add(entityService.saveEntity(entity));
                 
-                // 创建文档与实体的关系
+                // Create relationship between document and entity
                 graphService.createDocumentEntityRelationship(documentNode.getId(), entity.getName(), entity.getType());
             }
 
-            // 保存关系
+            // Save relations
             for (RelationInfo relationInfo : result.relations) {
                 graphService.createRelationship(
                     relationInfo.entity1, getEntityType(relationInfo.entity1, entities),
@@ -170,40 +170,40 @@ public class KnowledgeGraphService {
                 );
             }
 
-            logger.debug("提取完成 - 实体: {}, 关系: {}", result.entities.size(), result.relations.size());
+            logger.debug("Extraction completed - Entities: {}, Relations: {}", result.entities.size(), result.relations.size());
 
         } catch (Exception e) {
-            logger.error("实体和关系提取失败", e);
+            logger.error("Failed to extract entities and relations", e);
         }
     }
 
     /**
-     * 获取实体类型
+     * Get entity type
      */
     private String getEntityType(String entityName, List<EntityNode> entities) {
         return entities.stream()
                 .filter(e -> e.getName().equals(entityName))
                 .findFirst()
                 .map(EntityNode::getType)
-                .orElse("未知");
+                .orElse("Unknown");
     }
 
     /**
-     * 解析 LLM 提取响应
+     * Parse LLM extraction response
      */
     private ExtractionResult parseExtractionResponse(String response) {
         List<EntityInfo> entities = new ArrayList<>();
         List<RelationInfo> relations = new ArrayList<>();
 
-        String[] sections = response.split("关系：");
+        String[] sections = response.split("Relations:");
         
-        // 解析实体部分
+        // Parse entities section
         if (sections.length > 0) {
-            String entitySection = sections[0].replace("实体：", "").trim();
+            String entitySection = sections[0].replace("Entities:", "").trim();
             entities = parseEntities(entitySection);
         }
 
-        // 解析关系部分
+        // Parse relations section
         if (sections.length > 1) {
             String relationSection = sections[1].trim();
             relations = parseRelations(relationSection);
@@ -213,7 +213,7 @@ public class KnowledgeGraphService {
     }
 
     /**
-     * 解析实体
+     * Parse entities
      */
     private List<EntityInfo> parseEntities(String entitySection) {
         List<EntityInfo> entities = new ArrayList<>();
@@ -231,7 +231,7 @@ public class KnowledgeGraphService {
     }
 
     /**
-     * 解析关系
+     * Parse relations
      */
     private List<RelationInfo> parseRelations(String relationSection) {
         List<RelationInfo> relations = new ArrayList<>();
@@ -250,24 +250,24 @@ public class KnowledgeGraphService {
     }
 
     /**
-     * 生成文档嵌入向量
+     * Generate document embedding
      */
     private void generateDocumentEmbedding(DocumentNode documentNode) {
         try {
-            // 使用文档标题和内容的前500字符生成嵌入
+            // Generate embedding using document title and first 500 characters of content
             String textForEmbedding = documentNode.getTitle() + "\n" + 
                     documentNode.getContent().substring(0, Math.min(500, documentNode.getContent().length()));
             
             List<Double> embedding = embeddingService.embedText(textForEmbedding);
             documentService.updateEmbedding(documentNode.getId(), embedding);
             
-            logger.debug("文档嵌入向量生成完成，文档ID: {}", documentNode.getId());
+            logger.debug("Document embedding generation completed, document ID: {}", documentNode.getId());
         } catch (Exception e) {
-            logger.error("生成文档嵌入向量失败", e);
+            logger.error("Failed to generate document embedding", e);
         }
     }
 
-    // 内部数据类
+    // Inner data classes
     private static class ExtractionResult {
         final List<EntityInfo> entities;
         final List<RelationInfo> relations;
@@ -304,4 +304,3 @@ public class KnowledgeGraphService {
         }
     }
 }
-

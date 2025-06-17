@@ -49,6 +49,12 @@
             <artifactId>langchain4j-open-ai</artifactId>
         </dependency>
 
+        <!-- LangChain4j Azure OpenAI 集成 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-azure-open-ai</artifactId>
+        </dependency>
+
         <!-- LangChain4j Neo4j 集成 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>

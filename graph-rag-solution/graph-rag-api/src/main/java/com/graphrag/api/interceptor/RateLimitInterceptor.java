@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * 限流攔截器
+ * Rate Limit Interceptor
  */
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -29,18 +29,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String clientIp = getClientIp(request);
         String uri = request.getRequestURI();
 
-        // 根據不同的API路徑應用不同的限流策略
+        // Apply different rate limiting strategies based on API paths
         Bucket bucket = getBucketForRequest(clientIp, uri);
         
         if (bucket != null) {
             ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
             
             if (probe.isConsumed()) {
-                // 添加限流資訊到響應頭
+                // Add rate limit info to response headers
                 response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
                 return true;
             } else {
-                // 限流觸發
+                // Rate limit triggered
                 logger.warn("Rate limit exceeded for IP: {}, URI: {}", clientIp, uri);
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("application/json");
@@ -54,7 +54,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 根據請求獲取對應的限流桶
+     * Get the rate limit bucket for the request
      */
     private Bucket getBucketForRequest(String clientIp, String uri) {
         if (uri.contains("/query")) {
@@ -67,7 +67,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 獲取客戶端IP地址
+     * Get client IP address
      */
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");

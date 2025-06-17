@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 上下文融合算法
+ * Context Fusion Algorithm
  */
 @Component
 public class ContextFusionAlgorithm {
@@ -23,25 +23,25 @@ public class ContextFusionAlgorithm {
     private EmbeddingService embeddingService;
 
     /**
-     * 多源上下文融合
+     * Multi-source context fusion
      */
     public FusedContext fuseMultiSourceContext(List<DocumentNode> documents, 
                                               List<EntityNode> entities, 
                                               List<Map<String, Object>> graphRelations,
                                               String query) {
-        logger.debug("多源上下文融合，文档: {}, 实体: {}, 关系: {}", 
+        logger.debug("Fusing multi-source context, documents: {}, entities: {}, relations: {}", 
                 documents.size(), entities.size(), graphRelations.size());
 
-        // 1. 文档上下文处理
+        // 1. Process document context
         List<ContextSegment> documentSegments = processDocumentContext(documents, query);
 
-        // 2. 实体上下文处理
+        // 2. Process entity context
         List<ContextSegment> entitySegments = processEntityContext(entities, query);
 
-        // 3. 关系上下文处理
+        // 3. Process relation context
         List<ContextSegment> relationSegments = processRelationContext(graphRelations, query);
 
-        // 4. 上下文去重和排序
+        // 4. Deduplicate and rank context
         List<ContextSegment> allSegments = new ArrayList<>();
         allSegments.addAll(documentSegments);
         allSegments.addAll(entitySegments);
@@ -50,12 +50,12 @@ public class ContextFusionAlgorithm {
         List<ContextSegment> deduplicatedSegments = deduplicateSegments(allSegments);
         List<ContextSegment> rankedSegments = rankSegments(deduplicatedSegments, query);
 
-        // 5. 构建融合上下文
+        // 5. Build fused context
         return buildFusedContext(rankedSegments, query);
     }
 
     /**
-     * 处理文档上下文
+     * Process document context
      */
     private List<ContextSegment> processDocumentContext(List<DocumentNode> documents, String query) {
         List<ContextSegment> segments = new ArrayList<>();
@@ -68,7 +68,7 @@ public class ContextFusionAlgorithm {
 
             double relevanceScore = embeddingService.cosineSimilarity(queryVector, doc.getEmbedding());
             
-            // 提取关键段落
+            // Extract key paragraphs
             List<String> keyParagraphs = extractKeyParagraphs(doc.getContent(), query, 3);
             
             for (String paragraph : keyParagraphs) {
@@ -90,7 +90,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 处理实体上下文
+     * Process entity context
      */
     private List<ContextSegment> processEntityContext(List<EntityNode> entities, String query) {
         List<ContextSegment> segments = new ArrayList<>();
@@ -122,7 +122,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 处理关系上下文
+     * Process relation context
      */
     private List<ContextSegment> processRelationContext(List<Map<String, Object>> relations, String query) {
         List<ContextSegment> segments = new ArrayList<>();
@@ -130,7 +130,7 @@ public class ContextFusionAlgorithm {
         for (Map<String, Object> relation : relations) {
             String contextText = buildRelationContextText(relation);
             
-            // 简单的关键词匹配评分
+            // Simple keyword matching score
             double relevanceScore = calculateKeywordRelevance(contextText, query);
             
             ContextSegment segment = new ContextSegment(
@@ -146,14 +146,14 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 提取关键段落
+     * Extract key paragraphs
      */
     private List<String> extractKeyParagraphs(String content, String query, int maxParagraphs) {
         String[] paragraphs = content.split("\n\n");
         List<String> queryKeywords = Arrays.asList(query.toLowerCase().split("\\s+"));
 
         return Arrays.stream(paragraphs)
-                .filter(p -> p.trim().length() > 50) // 过滤太短的段落
+                .filter(p -> p.trim().length() > 50) // Filter too short paragraphs
                 .sorted((p1, p2) -> {
                     int score1 = calculateParagraphScore(p1, queryKeywords);
                     int score2 = calculateParagraphScore(p2, queryKeywords);
@@ -164,7 +164,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 计算段落评分
+     * Calculate paragraph score
      */
     private int calculateParagraphScore(String paragraph, List<String> keywords) {
         String lowerParagraph = paragraph.toLowerCase();
@@ -174,7 +174,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 构建实体上下文文本
+     * Build entity context text
      */
     private String buildEntityContextText(EntityNode entity) {
         StringBuilder text = new StringBuilder();
@@ -188,7 +188,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 构建关系上下文文本
+     * Build relation context text
      */
     private String buildRelationContextText(Map<String, Object> relation) {
         String entity1 = (String) relation.get("entity1");
@@ -207,7 +207,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 计算关键词相关性
+     * Calculate keyword relevance
      */
     private double calculateKeywordRelevance(String text, String query) {
         String[] queryWords = query.toLowerCase().split("\\s+");
@@ -221,7 +221,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 去重段落
+     * Deduplicate segments
      */
     private List<ContextSegment> deduplicateSegments(List<ContextSegment> segments) {
         Map<String, ContextSegment> uniqueSegments = new LinkedHashMap<>();
@@ -229,7 +229,7 @@ public class ContextFusionAlgorithm {
         for (ContextSegment segment : segments) {
             String key = segment.getContent().trim().toLowerCase();
             
-            // 如果已存在相似内容，保留评分更高的
+            // Keep segment with higher score if similar content exists
             if (uniqueSegments.containsKey(key)) {
                 ContextSegment existing = uniqueSegments.get(key);
                 if (segment.getRelevanceScore() > existing.getRelevanceScore()) {
@@ -244,7 +244,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 排序段落
+     * Rank segments
      */
     private List<ContextSegment> rankSegments(List<ContextSegment> segments, String query) {
         return segments.stream()
@@ -253,40 +253,40 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 构建融合上下文
+     * Build fused context
      */
     private FusedContext buildFusedContext(List<ContextSegment> segments, String query) {
-        // 按类型分组
+        // Group by type
         Map<String, List<ContextSegment>> segmentsByType = segments.stream()
                 .collect(Collectors.groupingBy(ContextSegment::getType));
 
-        // 构建结构化上下文
+        // Build structured context
         StringBuilder contextText = new StringBuilder();
         
-        // 添加文档上下文
+        // Add document context
         List<ContextSegment> documentSegments = segmentsByType.getOrDefault("document", List.of());
         if (!documentSegments.isEmpty()) {
-            contextText.append("相关文档内容：\n");
+            contextText.append("Related Document Content:\n");
             for (ContextSegment segment : documentSegments.stream().limit(5).collect(Collectors.toList())) {
                 contextText.append("- ").append(segment.getContent()).append("\n");
             }
             contextText.append("\n");
         }
 
-        // 添加实体上下文
+        // Add entity context
         List<ContextSegment> entitySegments = segmentsByType.getOrDefault("entity", List.of());
         if (!entitySegments.isEmpty()) {
-            contextText.append("相关实体：\n");
+            contextText.append("Related Entities:\n");
             for (ContextSegment segment : entitySegments.stream().limit(10).collect(Collectors.toList())) {
                 contextText.append("- ").append(segment.getContent()).append("\n");
             }
             contextText.append("\n");
         }
 
-        // 添加关系上下文
+        // Add relation context
         List<ContextSegment> relationSegments = segmentsByType.getOrDefault("relation", List.of());
         if (!relationSegments.isEmpty()) {
-            contextText.append("相关关系：\n");
+            contextText.append("Related Relations:\n");
             for (ContextSegment segment : relationSegments.stream().limit(15).collect(Collectors.toList())) {
                 contextText.append("- ").append(segment.getContent()).append("\n");
             }
@@ -301,7 +301,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 计算整体相关性
+     * Calculate overall relevance
      */
     private double calculateOverallRelevance(List<ContextSegment> segments) {
         if (segments.isEmpty()) {
@@ -315,7 +315,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 上下文段落类
+     * Context segment class
      */
     public static class ContextSegment {
         private final String content;
@@ -338,7 +338,7 @@ public class ContextFusionAlgorithm {
     }
 
     /**
-     * 融合上下文类
+     * Fused context class
      */
     public static class FusedContext {
         private final String contextText;
@@ -361,4 +361,3 @@ public class ContextFusionAlgorithm {
         public Map<String, List<ContextSegment>> getSegmentsByType() { return segmentsByType; }
     }
 }
-

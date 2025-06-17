@@ -28,17 +28,27 @@ public interface DocumentRepository extends Neo4jRepository<DocumentNode, Long> 
     /**
      * 根据内容关键词搜索文档
      */
-    @Query("MATCH (d:Document) WHERE d.content CONTAINS $keyword RETURN d")
+    @Query("""
+           CALL db.index.fulltext.queryNodes('documentContentFullText', $keyword)
+           YIELD node AS d, score
+           RETURN d
+           ORDER BY score DESC
+           """)
     List<DocumentNode> findByContentContaining(@Param("keyword") String keyword);
 
     /**
      * 向量相似性搜索
      */
-    @Query("MATCH (d:Document) " +
-           "WHERE d.embedding IS NOT NULL " +
-           "WITH d, gds.similarity.cosine(d.embedding, $queryEmbedding) AS similarity " +
-           "WHERE similarity > $threshold " +
-           "RETURN d ORDER BY similarity DESC LIMIT $limit")
+    @Query("""
+           MATCH (d:Document)
+           WHERE d.embedding IS NOT NULL
+           WITH d,
+                gds.similarity.cosine(d.embedding, $queryEmbedding) AS similarity
+           WHERE similarity > $threshold
+           RETURN d
+           ORDER BY similarity DESC
+           LIMIT $limit
+           """)
     List<DocumentNode> findSimilarDocuments(
         @Param("queryEmbedding") List<Double> queryEmbedding,
         @Param("threshold") Double threshold,

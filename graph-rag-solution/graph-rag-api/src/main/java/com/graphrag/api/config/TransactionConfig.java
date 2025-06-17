@@ -9,15 +9,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * 事務管理器配置
- * 解決多個事務管理器衝突問題
+ * Transaction Manager Configuration
+ * Resolves conflicts between multiple transaction managers
  */
 @Configuration
 @EnableTransactionManagement
 public class TransactionConfig {
 
     /**
-     * 設置 Neo4j 事務管理器為主要事務管理器
+     * Set Neo4j transaction manager as the primary transaction manager
      */
     @Bean
     @Primary
@@ -26,4 +26,4 @@ public class TransactionConfig {
             org.neo4j.driver.Driver driver) {
         return new Neo4jTransactionManager(driver);
     }
-} 
+}
