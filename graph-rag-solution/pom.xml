@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
 
     <name>Graph RAG Solution</name>
-    <description>大规模图 RAG 工业级解决方案</description>
+    <description>大規模圖 RAG 工業級解決方案</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -27,7 +27,7 @@
         <!-- Neo4j 版本 -->
         <neo4j.version>5.15.0</neo4j.version>
         
-        <!-- 其他依赖版本 -->
+        <!-- 其他依賴版本 -->
         <jackson.version>2.15.4</jackson.version>
         <slf4j.version>2.0.11</slf4j.version>
         <junit.version>5.10.1</junit.version>
@@ -57,63 +57,51 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- LangChain4j 核心依赖 -->
+            <!-- LangChain4j 相關依賴 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- LangChain4j OpenAI 集成 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-open-ai</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- LangChain4j Azure OpenAI 集成 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-azure-open-ai</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- LangChain4j Neo4j 集成 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-neo4j</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- LangChain4j 嵌入模型 -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- Neo4j Java 驱动 -->
+            <!-- Neo4j 相關依賴 -->
             <dependency>
                 <groupId>org.neo4j.driver</groupId>
                 <artifactId>neo4j-java-driver</artifactId>
                 <version>${neo4j.version}</version>
             </dependency>
 
-            <!-- Neo4j Spring Data -->
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-neo4j</artifactId>
                 <version>7.2.0</version>
             </dependency>
 
-            <!-- Jackson JSON 处理 -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <!-- Jackson BOM - 統一版本管理 -->
+            <!-- Jackson 相關依賴 -->
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
@@ -122,7 +110,12 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- 強制統一 Jackson 核心組件 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
@@ -141,14 +134,47 @@
                 <version>${jackson.version}</version>
             </dependency>
 
-            <!-- 日志框架 -->
+            <!-- 工具類庫依賴 -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
 
-            <!-- 测试框架 -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <!-- Apache Tika 相關依賴 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+
+            <!-- 限流工具依賴 -->
+            <dependency>
+                <groupId>com.github.vladimir-bukhtoyarov</groupId>
+                <artifactId>bucket4j-core</artifactId>
+                <version>${bucket4j.version}</version>
+            </dependency>
+
+            <!-- API 文檔依賴 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- 測試相關依賴 -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
@@ -156,42 +182,6 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- Guava -->
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-
-            <!-- Commons Lang3 -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
-            </dependency>
-
-            <!-- Apache Tika -->
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-core</artifactId>
-                <version>${tika.version}</version>
-            </dependency>
-
-            <!-- Bucket4j -->
-            <dependency>
-                <groupId>com.github.vladimir-bukhtoyarov</groupId>
-                <artifactId>bucket4j-core</artifactId>
-                <version>${bucket4j.version}</version>
-            </dependency>
-
-            <!-- SpringDoc OpenAPI -->
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${springdoc.version}</version>
-            </dependency>
-
-            <!-- TestContainers -->
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
