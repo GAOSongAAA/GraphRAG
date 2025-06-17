@@ -144,7 +144,7 @@ public class EnhancedKnowledgeGraphService {
                 DocumentNode documentNode = saveDocumentToDatabase(document);
 
                 // 2. Split document
-                List<TextSegment> segments = textSplitterService.splitDocument(document);
+                List<TextSegment> segments = textSplitterService.splitDocumentOptimized(document);
                 logger.info("Document splitting completed, generated {} segments", segments.size());
 
                 // 3. Process all segments in parallel

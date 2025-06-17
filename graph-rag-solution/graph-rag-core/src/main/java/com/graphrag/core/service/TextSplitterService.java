@@ -33,11 +33,23 @@ public class TextSplitterService {
      */
     public List<TextSegment> splitDocument(Document document) {
         logger.debug("开始分割文档，原始长度: {}", document.text().length());
-        
+
         List<TextSegment> segments = documentSplitter.split(document);
-        
+
         logger.info("文档分割完成，生成 {} 个片段", segments.size());
         return segments;
+    }
+
+    /**
+     * 根据文档长度自动调整分割参数
+     */
+    public List<TextSegment> splitDocumentOptimized(Document document) {
+        int length = document.text().length();
+        int chunkSize = length > 10000 ? 2000 : 1000;
+        int overlap = length > 10000 ? 300 : 200;
+        DocumentSplitter splitter = DocumentSplitters.recursive(chunkSize, overlap);
+        logger.debug("优化分割，长度: {}, 块大小: {}, 重叠: {}", length, chunkSize, overlap);
+        return splitter.split(document);
     }
 
     /**

@@ -5,6 +5,8 @@ import dev.langchain4j.data.document.DocumentLoader;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
+import org.apache.tika.Tika;
+import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,13 +30,14 @@ public class DocumentLoaderService {
     private static final Logger logger = LoggerFactory.getLogger(DocumentLoaderService.class);
 
     private final DocumentParser textParser = new TextDocumentParser();
+    private final Tika tika = new Tika();
 
     /**
      * 從文件路徑加載文檔
      */
     public Document loadFromFile(Path filePath) {
         try {
-            String text = Files.readString(filePath, StandardCharsets.UTF_8);
+            String text = tika.parseToString(filePath);
             Metadata metadata = new Metadata();
             metadata.add("source", filePath.toString());
             return Document.from(text, metadata);
@@ -49,7 +52,7 @@ public class DocumentLoaderService {
      */
     public Document loadFromUrl(String url) {
         try (InputStream is = new URL(url).openStream()) {
-            String text = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            String text = tika.parseToString(is);
             Metadata metadata = new Metadata();
             metadata.add("source", url);
             return Document.from(text, metadata);
@@ -64,16 +67,42 @@ public class DocumentLoaderService {
      */
     public Document loadFromInputStream(InputStream inputStream, String source) {
         try {
-            Document document = textParser.parse(inputStream);
-            // 設置文檔來源
+            String text = tika.parseToString(inputStream);
             Metadata metadata = new Metadata();
             metadata.add("source", source);
-            document = Document.from(document.text(), metadata);
+            Document document = Document.from(text, metadata);
             logger.info("從輸入流加載文檔成功: {}", source);
             return document;
         } catch (Exception e) {
             logger.error("從輸入流加載文檔失敗: {}", source, e);
             throw new RuntimeException("文檔加載失敗", e);
+        }
+    }
+
+    /**
+     * 從 MultipartFile 加載文檔
+     */
+    public Document loadFromMultipartFile(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        try (InputStream is = file.getInputStream()) {
+            String text = tika.parseToString(is);
+            Metadata metadata = new Metadata();
+            metadata.add("source", filename != null ? filename : "uploaded");
+            Document document = Document.from(text, metadata);
+            logger.info("從 MultipartFile 加載文檔成功: {}", filename);
+            return document;
+        } catch (Exception e) {
+            logger.warn("Tika 解析失敗，嘗試以文本方式處理: {}", filename, e);
+            try {
+                String text = new String(file.getBytes(), StandardCharsets.UTF_8);
+                Metadata metadata = new Metadata();
+                metadata.add("source", filename != null ? filename : "uploaded");
+                Document document = Document.from(text, metadata);
+                return document;
+            } catch (IOException ex) {
+                logger.error("從 MultipartFile 加載文檔最終失敗: {}", filename, ex);
+                throw new RuntimeException("文檔加載失敗", ex);
+            }
         }
     }
 
