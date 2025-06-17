@@ -1,5 +1,7 @@
 package com.graphrag.core.service;
 
+import com.graphrag.core.algorithm.ContextFusionAlgorithm;
+import com.graphrag.core.algorithm.ContextFusionAlgorithm.FusedContext;
 import com.graphrag.core.context.ContextBuilder;
 import com.graphrag.core.graph.GraphContextService;
 import com.graphrag.core.prompt.RAGPromptTemplates;
@@ -35,18 +37,21 @@ public class GraphRagRetrievalService {
     private final DocumentService docSvc;
     private final EntityService entitySvc;
     private final GraphContextService graphCtxSvc;
+    private final ContextFusionAlgorithm fusionAlgorithm;
     private final ContextBuilder ctxBuilder = new ContextBuilder();
 
     public GraphRagRetrievalService(ChatLanguageModel chatModel,
             EmbeddingService embedSvc,
             DocumentService docSvc,
             EntityService entitySvc,
-            GraphContextService graphCtxSvc) {
+            GraphContextService graphCtxSvc,
+            ContextFusionAlgorithm fusionAlgorithm) {
         this.chatModel = chatModel;
         this.embedSvc = embedSvc;
         this.docSvc = docSvc;
         this.entitySvc = entitySvc;
         this.graphCtxSvc = graphCtxSvc;
+        this.fusionAlgorithm = fusionAlgorithm;
     }
 
     /**
@@ -60,8 +65,8 @@ public class GraphRagRetrievalService {
             List<EntityNode> ents = entitySvc.findSimilarEntities(qEmbed, 0.7, 10);
             List<Map<String, Object>> relations = graphCtxSvc.retrieve(ents);
 
-            String ctx = ctxBuilder.build(docs, ents, relations);
-            String answer = generateAnswer(req.getQuestion(), ctx);
+            FusedContext fused = fusionAlgorithm.fuseMultiSourceContext(docs, ents, relations, req.getQuestion());
+            String answer = generateAnswer(req.getQuestion(), fused.getContextText());
             return buildResponse(req.getQuestion(), answer, docs, ents);
         } catch (Exception ex) {
             log.error("Graph RAG retrieve failed", ex);
@@ -85,8 +90,8 @@ public class GraphRagRetrievalService {
             List<EntityNode> allEnts = MergeUtil.merge(15, vecEnts, graphEnts);
             List<Map<String, Object>> relations = graphCtxSvc.retrieve(allEnts);
 
-            String ctx = ctxBuilder.build(allDocs, allEnts, relations);
-            String answer = generateAnswer(req.getQuestion(), ctx);
+            FusedContext fused = fusionAlgorithm.fuseMultiSourceContext(allDocs, allEnts, relations, req.getQuestion());
+            String answer = generateAnswer(req.getQuestion(), fused.getContextText());
             return buildResponse(req.getQuestion(), answer, allDocs, allEnts);
         } catch (Exception ex) {
             log.error("Hybrid RAG retrieve failed", ex);
