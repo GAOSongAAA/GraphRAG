@@ -33,7 +33,7 @@ import java.util.Map;
  * Graph RAG API Controller
  */
 @RestController
-@RequestMapping("/api/v1/graph-rag")
+@RequestMapping("/")
 @Tag(name = "Graph RAG API", description = "Graph RAG Retrieval and Generation Interface")
 @CrossOrigin(origins = "*")
 public class GraphRagController {
