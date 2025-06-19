@@ -147,11 +147,7 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- 已刪除 org.junit.jupiter:junit-jupiter 依賴，解決構建問題 -->
     </dependencies>
 
 </project>

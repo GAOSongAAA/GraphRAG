@@ -64,6 +64,9 @@ public class GraphRagController {
     private DocumentLoaderService documentLoaderService;
 
     @Autowired
+    private GraphTraversalAlgorithm traversal;
+
+    @Autowired
     public GraphRagController(AsyncTaskRegistry taskRegistry) {
         this.taskRegistry = taskRegistry;
     }
@@ -287,14 +290,13 @@ public class GraphRagController {
     @GetMapping("/entities/{entityName}/related")
     @Operation(summary = "Get Related Entities", description = "Get Entities Related to Specified Entity")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRelatedEntities(
-            @PathVariable @Parameter(description = "Entity Name") String entityName,
-            @RequestParam(value = "maxHops", defaultValue = "2") @Parameter(description = "Maximum Hops") int maxHops,
-            @RequestParam(value = "maxResults", defaultValue = "20") @Parameter(description = "Maximum Results") int maxResults) {
+        @PathVariable("entityName") @Parameter(description = "Entity Name") String entityName,
+        @RequestParam("maxHops") @Parameter(description = "Maximum Hops") int maxHops,
+        @RequestParam("maxResults") @Parameter(description = "Maximum Results") int maxResults) {
 
         logger.info("Received related entities query request, entity: {}", entityName);
 
         try {
-            GraphTraversalAlgorithm traversal = new GraphTraversalAlgorithm();
             List<Map<String, Object>> relatedEntities = traversal.multiHopEntityRetrieval(
                     entityName, maxHops, maxResults);
 

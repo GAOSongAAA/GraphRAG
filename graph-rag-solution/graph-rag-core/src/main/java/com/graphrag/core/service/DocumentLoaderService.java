@@ -1,7 +1,6 @@
 package com.graphrag.core.service;
 
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentLoader;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +27,6 @@ public class DocumentLoaderService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentLoaderService.class);
 
-    private final DocumentParser textParser = new TextDocumentParser();
     private final Tika tika = new Tika();
 
     /**
@@ -226,10 +223,21 @@ public class DocumentLoaderService {
         }
 
         // Getters
-        public int getCharacterCount() { return characterCount; }
-        public int getWordCount() { return wordCount; }
-        public int getLineCount() { return lineCount; }
-        public int getParagraphCount() { return paragraphCount; }
+        public int getCharacterCount() {
+            return characterCount;
+        }
+
+        public int getWordCount() {
+            return wordCount;
+        }
+
+        public int getLineCount() {
+            return lineCount;
+        }
+
+        public int getParagraphCount() {
+            return paragraphCount;
+        }
 
         @Override
         public String toString() {

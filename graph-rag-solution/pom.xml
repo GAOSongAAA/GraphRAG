@@ -37,6 +37,7 @@
         <bucket4j.version>7.6.0</bucket4j.version>
         <springdoc.version>2.3.0</springdoc.version>
         <testcontainers.version>1.19.3</testcontainers.version>
+        <!-- <d3-hierarchy.version>3.0.1</d3-hierarchy.version> -->
     </properties>
 
     <modules>
@@ -195,6 +196,15 @@
                 <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
+
+            <!-- D3 Hierarchy 依賴已移除，解決構建問題 -->
+            <!--
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>d3-hierarchy</artifactId>
+                <version>${d3-hierarchy.version}</version>
+            </dependency>
+            -->
         </dependencies>
     </dependencyManagement>
 

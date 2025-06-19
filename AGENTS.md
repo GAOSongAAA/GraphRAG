@@ -48,6 +48,8 @@ graph-rag-solution/
 ├── Dockerfile                 # Docker 镜像构建文件
 └── pom.xml                    # 父级 POM 文件
 
+src/                           # 前端目录
+
 ## 二、任务要求
 
-完全阅读该项目，我希望你能制作一个用于前端开发的说明书，详细说明针对该RAG项目前端如何开发，用JSX语言加VITE
+1.完全阅读该项目，在src/前端目录文件里面修正API调用格式，要求能在UI界面上反映正确的功能

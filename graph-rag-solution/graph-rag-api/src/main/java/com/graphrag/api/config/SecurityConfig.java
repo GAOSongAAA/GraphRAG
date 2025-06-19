@@ -9,13 +9,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 /**
- * Spring Security Configuration
+ * Spring Security 設定
  *
- * Configuration details:
- * 1. Disable default login page
- * 2. Allow all API requests without authentication
- * 3. Configure CORS and security headers
- * 4. Disable CSRF (not needed for API services)
+ * 設定說明：
+ * 1. 停用預設登入頁
+ * 2. 所有 API 請求皆允許匿名存取
+ * 3. 設定 CORS 與安全標頭
+ * 4. 停用 CSRF（API 服務通常不需要）
  */
 @Configuration
 @EnableWebSecurity
@@ -24,43 +24,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF protection (typically not needed for API services)
+            // 停用 CSRF 保護（API 服務通常不需要）
             .csrf(csrf -> csrf.disable())
-            
-            // Configure authorization rules
+
+            // 設定授權規則
             .authorizeHttpRequests(authz -> authz
-                // Allow health check endpoint
+                // 健康檢查端點允許匿名
                 .requestMatchers("/api/v1/graph-rag/health").permitAll()
-                
-                // Allow Swagger documentation access
+                // Swagger 文件允許匿名
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/api-docs/**").permitAll()
-                
-                // Allow Actuator monitoring endpoints
+                // Actuator 監控端點允許匿名
                 .requestMatchers("/actuator/**").permitAll()
-                
-                // Allow all API requests
+                // 所有 API 請求允許匿名
                 .requestMatchers("/api/**").permitAll()
-                
-                // Allow static resources
+                // 靜態資源允許匿名
                 .requestMatchers("/static/**", "/public/**").permitAll()
-                
-                // Other requests require authentication (if any)
+                // 其他請求也允許匿名
                 .anyRequest().permitAll()
             )
-            
-            // Configure session management (stateless)
+
+            // 設定 Session 管理為無狀態
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            
-            // Disable default login page
+
+            // 停用預設登入頁
             .formLogin(form -> form.disable())
-            
-            // Disable HTTP Basic authentication
+
+            // 停用 HTTP Basic 認證
             .httpBasic(basic -> basic.disable())
-            
-            // Configure security headers
+
+            // 設定安全標頭
             .headers(headers -> headers
                 .frameOptions().deny()
                 .contentTypeOptions().and()

@@ -1,10 +1,14 @@
-# 生產環境配置
+# 開發環境配置
 spring:
   config:
     activate:
       on-profile: dev
+  web:
+    resources:
+      static-locations: classpath:/static/
+      # 若找不到前端 index.html，請確認 static 目錄下有 index.html 檔案
 
-# Graph RAG 生產環境配置
+# Graph RAG 開發環境配置
 graph-rag:
   neo4j:
     uri: ${NEO4J_URI:bolt://neo4j-cluster:7687}
@@ -25,4 +29,5 @@ logging:
     root: WARN
     com.graphrag: INFO
   file:
-    name: /var/log/graph-rag/application.log
+    name: ./logs/graph-rag-dev.log
+# 若啟動後 @index.html 找不到前端，請確認 static 目錄下有 index.html，或檢查 spring.web.resources.static-locations 設定
