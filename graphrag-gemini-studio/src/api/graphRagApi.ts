@@ -70,7 +70,51 @@ export const graphRagApi = {
     maxHops = 2,
     maxResults = 20
   ): Promise<ApiResponse<RelatedEntityInfo[]>> =>
-    axiosClient.get(`/entities/${entityName}/related`, {
-      params: { maxHops, maxResults },
-    }),
+    axiosClient
+      .get<ApiResponse<any[]>>(`/entities/${entityName}/related`, {
+        params: { maxHops, maxResults },
+      })
+      .then((resp) => {
+        const apiResp = resp as unknown as ApiResponse<any[]>;
+        const mapped = (apiResp.data || []).map((item) => {
+          const entity = {
+            properties: {
+              name: item.entityName,
+              type: item.entityType,
+              description: item.description,
+            },
+            labels: [],
+          } as RelatedEntityInfo['entity'];
+
+          const path: RelatedEntityInfo['path'] = [];
+          const nodes: string[] = item.pathNodes || [];
+          const rels: string[] = item.relationshipTypes || [];
+
+          for (let i = 0; i < rels.length; i++) {
+            path.push({
+              start: {
+                properties: { name: nodes[i] },
+                labels: [],
+              },
+              relationship: {
+                type: rels[i],
+                properties: {},
+              },
+              end: {
+                properties: { name: nodes[i + 1] },
+                labels: [],
+              },
+            });
+          }
+
+          return {
+            entity,
+            path,
+            hops: item.pathLength ?? rels.length,
+          } as RelatedEntityInfo;
+        });
+
+        return { ...apiResp, data: mapped } as ApiResponse<RelatedEntityInfo[]>;
+      }),
 };
+
