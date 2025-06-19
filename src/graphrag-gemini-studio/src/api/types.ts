@@ -1,7 +1,9 @@
 export interface ApiResponse<T> {
-  code: number;
+  success: boolean;
+  code: string;
   message: string;
   data: T;
+  timestamp?: string;
 }
 
 export type RetrievalMode = 'vector' | 'graph' | 'hybrid';
@@ -23,9 +25,14 @@ export interface Segment {
 }
 
 export interface GraphRagResponse {
+  question: string;
   answer: string;
-  segments: Segment[];
-  processingTimeMs: number;
+  confidence?: number;
+  processingTimeMs?: number;
+  relevantDocuments?: Record<string, any>[];
+  relevantEntities?: Record<string, any>[];
+  graphContext?: Record<string, any>[];
+  timestamp?: string;
 }
 
 export interface QueryAnalysis {
