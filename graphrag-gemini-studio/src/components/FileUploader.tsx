@@ -4,6 +4,7 @@ import { App, UploadProps } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import { graphRagApi } from '@/api/graphRagApi';
 import Dragger from 'antd/es/upload/Dragger';
+import { RcFile } from 'antd/es/upload';
 
 const FileUploader: React.FC = () => {
   const { message } = App.useApp();
@@ -11,14 +12,14 @@ const FileUploader: React.FC = () => {
   const uploadMutation = useMutation({
     mutationFn: (file: File) => graphRagApi.uploadDocument(file),
     onSuccess: (response) => {
-      if (response.success) {
+      if (response.code === 0) {
         message.success(response.data || '文件上传成功!');
       } else {
         message.error(response.message);
       }
     },
     onError: (error) => {
-      message.error(`上传失败: ${error.message}`);
+      message.error(`上传失敗: ${error.message}`);
     },
   });
 
@@ -27,11 +28,15 @@ const FileUploader: React.FC = () => {
     multiple: false,
     customRequest: ({ file, onSuccess, onError }) => {
       if (typeof file === 'string') {
-        onError?.(new Error('Invalid file type'));
+        onError?.(new Error('無效的文件類型'));
         return;
       }
+      // 將 RcFile 轉換為 File 類型
+      const rcFile = file as RcFile;
+      const convertedFile = new File([rcFile], rcFile.name, { type: rcFile.type, lastModified: rcFile.lastModified });
+      
       uploadMutation
-        .mutateAsync(file)
+        .mutateAsync(convertedFile)
         .then(() => {
           onSuccess?.('ok');
         })
@@ -47,9 +52,9 @@ const FileUploader: React.FC = () => {
       <p className="ant-upload-drag-icon">
         <InboxOutlined />
       </p>
-      <p className="ant-upload-text">点击或拖拽文件到此处上传</p>
+      <p className="ant-upload-text">點擊或拖拽文件到此處上傳</p>
       <p className="ant-upload-hint">
-        支持单文件上传。后台将自动解析并构建知识图谱。
+        支持單文件上傳。後台將自動解析並構建知識圖譜。
       </p>
     </Dragger>
   );

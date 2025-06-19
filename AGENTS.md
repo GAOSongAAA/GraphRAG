@@ -48,8 +48,8 @@ graph-rag-solution/
 ├── Dockerfile                 # Docker 镜像构建文件
 └── pom.xml                    # 父级 POM 文件
 
-src/                           # 前端目录
+graphrag-gemini-studio/                           # 前端目录
 
 ## 二、任务要求
 
-1.完全阅读该项目，在src/前端目录文件里面修正API调用格式，要求能在UI界面上反映正确的功能
+1.完全阅读该项目，在graphrag-gemini-studio前端目录文件里面修正API调用格式，要求能在UI界面上反映正确的功能

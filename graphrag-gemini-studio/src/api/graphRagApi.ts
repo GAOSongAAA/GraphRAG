@@ -4,6 +4,7 @@ import {
   GraphRagResponse,
   QueryAnalysis,
   GraphStats,
+  RelatedEntityInfo,
   ApiResponse,
 } from './types';
 
@@ -48,7 +49,7 @@ export const graphRagApi = {
     entityName: string,
     maxHops = 2,
     maxResults = 20
-  ): Promise<ApiResponse<any>> =>
+  ): Promise<ApiResponse<RelatedEntityInfo[]>> =>
     axiosClient.get(`/entities/${entityName}/related`, {
       params: { maxHops, maxResults },
     }),

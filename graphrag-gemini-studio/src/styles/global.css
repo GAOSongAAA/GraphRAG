@@ -1,4 +1,5 @@
-@import url('fira-code/distr/fira_code.css');
+@import "@fontsource/fira-code/index.css";
+
 
 @tailwind base;
 @tailwind components;

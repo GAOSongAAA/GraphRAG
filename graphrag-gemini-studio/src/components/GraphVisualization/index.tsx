@@ -71,7 +71,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             'font-size': '12px',
             'text-valign': 'bottom',
             'text-halign': 'center',
-            'text-margin-y': '5px',
+            'text-margin-y': 5,
             color: '#333',
             width: '30px',
             height: '30px',
