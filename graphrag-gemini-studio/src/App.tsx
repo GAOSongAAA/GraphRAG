@@ -3,6 +3,7 @@ import PageLayout from './layouts/PageLayout';
 import DashboardPage from './pages/Dashboard';
 import GraphExplorerPage from './pages/GraphExplorer';
 import StatisticsPage from './pages/Statistics';
+import ToolsPage from './pages/Tools';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="explorer" element={<GraphExplorerPage />} />
         <Route path="statistics" element={<StatisticsPage />} />
+        <Route path="tools" element={<ToolsPage />} />
       </Route>
     </Routes>
   );

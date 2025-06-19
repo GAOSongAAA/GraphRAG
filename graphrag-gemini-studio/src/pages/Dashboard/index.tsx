@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input, Card, Spin, Alert, Row, Col, App, Empty } from 'antd';
 import { graphRagApi } from '@/api/graphRagApi';
 import { GraphRagRequest, GraphRagResponse } from '@/api/types';
@@ -9,21 +8,15 @@ import FileUploader from '@/components/FileUploader';
 const DashboardPage: React.FC = () => {
   const [result, setResult] = useState<GraphRagResponse | null>(null);
   const { message } = App.useApp();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const eventRef = useRef<EventSource | null>(null);
 
-  const queryMutation = useMutation({
-    mutationFn: (request: GraphRagRequest) => graphRagApi.query(request),
-    onSuccess: (response) => {
-      if (response.success) {
-        setResult(response.data);
-      } else {
-        message.error(response.message);
-      }
-    },
-    onError: (error) => {
-      message.error(error.message);
-      setResult(null);
-    },
-  });
+  useEffect(() => {
+    return () => {
+      eventRef.current?.close();
+    };
+  }, []);
 
   const handleSearch = (value: string) => {
     if (!value.trim()) {
@@ -31,11 +24,29 @@ const DashboardPage: React.FC = () => {
       return;
     }
     setResult(null);
+    setError(null);
+    setLoading(true);
     const request: GraphRagRequest = {
       question: value,
       retrievalMode: 'hybrid',
     };
-    queryMutation.mutate(request);
+    eventRef.current?.close();
+    eventRef.current = graphRagApi.queryStream(
+      request,
+      (res) => {
+        setLoading(false);
+        if (res.success) {
+          setResult(res.data);
+        } else {
+          setError(res.message);
+        }
+        eventRef.current?.close();
+      },
+      () => {
+        setLoading(false);
+        setError('查询失败');
+      }
+    );
   };
 
   return (
@@ -48,7 +59,7 @@ const DashboardPage: React.FC = () => {
               enterButton="提问"
               size="large"
               onSearch={handleSearch}
-              loading={queryMutation.isPending}
+              loading={loading}
             />
           </Card>
         </Col>
@@ -57,21 +68,21 @@ const DashboardPage: React.FC = () => {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           <Card title="问答结果" style={{ minHeight: '400px' }}>
-            {queryMutation.isPending && (
+            {loading && (
               <div className="flex justify-center items-center h-full">
                 <Spin size="large" tip="正在思考中..." />
               </div>
             )}
-            {queryMutation.isError && (
+            {error && (
               <Alert
                 message="查询失败"
-                description={queryMutation.error.message}
+                description={error}
                 type="error"
                 showIcon
               />
             )}
             {result && <ResultDisplay data={result} />}
-            {!queryMutation.isPending && !result && !queryMutation.isError && (
+            {!loading && !result && !error && (
               <div className="flex justify-center items-center h-full">
                 <Empty description="请输入问题以开始查询" />
               </div>

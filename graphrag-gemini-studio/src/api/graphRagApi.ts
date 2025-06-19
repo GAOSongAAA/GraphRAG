@@ -14,6 +14,26 @@ export const graphRagApi = {
   ): Promise<ApiResponse<GraphRagResponse>> =>
     axiosClient.post('/query', request),
 
+  queryStream: (
+    request: GraphRagRequest,
+    onMessage: (data: ApiResponse<GraphRagResponse>) => void,
+    onError?: (err: any) => void
+  ): EventSource => {
+    const params = new URLSearchParams({
+      question: request.question,
+      retrievalMode: request.retrievalMode || 'hybrid',
+    });
+    const es = new EventSource(`/query/stream?${params.toString()}`);
+    es.onmessage = (ev) => {
+      onMessage(JSON.parse(ev.data));
+    };
+    es.onerror = (err) => {
+      onError?.(err);
+      es.close();
+    };
+    return es;
+  },
+
   submitAsyncQuery: (
     request: GraphRagRequest
   ): Promise<ApiResponse<string>> =>
