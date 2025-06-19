@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, Typography, Descriptions, Tag, Collapse } from 'antd';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GraphRagResponse } from '@/api/types';
 import { CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 
-const { Paragraph, Text } = Typography;
+const { Text } = Typography;
 const { Panel } = Collapse;
 
 interface Props {
@@ -19,7 +21,9 @@ const ResultDisplay: React.FC<Props> = ({ data }) => {
             {data.processingTimeMs} ms
           </Descriptions.Item>
         </Descriptions>
-        <Paragraph className="text-base">{data.answer}</Paragraph>
+        <ReactMarkdown remarkPlugins={[remarkGfm as any]} className="whitespace-pre-wrap">
+          {data.answer}
+        </ReactMarkdown>
       </Card>
 
       <Collapse accordion>
@@ -32,7 +36,14 @@ const ResultDisplay: React.FC<Props> = ({ data }) => {
               <Card key={index} size="small">
                 <div className="flex justify-between items-start">
                   <FileTextOutlined className="mr-sm mt-1" />
-                  <Paragraph className="flex-1 !mb-0">{seg.content}</Paragraph>
+                  <div className="flex-1">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm as any]}
+                      className="whitespace-pre-wrap !mb-0"
+                    >
+                      {seg.content}
+                    </ReactMarkdown>
+                  </div>
                   <Tag
                     icon={<CheckCircleOutlined />}
                     color="success"

@@ -5,6 +5,7 @@ import {
   DashboardOutlined,
   ApartmentOutlined,
   LineChartOutlined,
+  ToolOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
@@ -29,6 +30,11 @@ const navigationItems = [
     key: '/statistics',
     icon: <LineChartOutlined />,
     label: '系统状态',
+  },
+  {
+    key: '/tools',
+    icon: <ToolOutlined />,
+    label: '工具',
   },
 ];
 

@@ -20,9 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.net.URI;
 import java.util.List;
@@ -101,6 +105,35 @@ public class GraphRagController {
             logger.error("Graph RAG query failed", e);
             return ResponseEntity.ok(ApiResponse.error("Query failed: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Graph RAG Query Stream Interface
+     */
+    @GetMapping(value = "/query/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "Graph RAG Query Stream")
+    public Flux<ApiResponse<GraphRagResponse>> queryStream(
+            @RequestParam("question") String question,
+            @RequestParam(value = "retrievalMode", defaultValue = "hybrid") String retrievalMode) {
+
+        GraphRagRequest request = new GraphRagRequest();
+        request.setQuestion(question);
+        request.setRetrievalMode(retrievalMode);
+
+        return Mono.fromCallable(() -> {
+                    long startTime = System.currentTimeMillis();
+                    GraphRagResponse response;
+                    if ("hybrid".equalsIgnoreCase(request.getRetrievalMode())) {
+                        response = retrievalService.hybridRetrieve(request);
+                    } else {
+                        response = retrievalService.retrieve(request);
+                    }
+                    response.setProcessingTimeMs(System.currentTimeMillis() - startTime);
+                    return ApiResponse.success(response);
+                })
+                .onErrorResume(e -> Mono.just(ApiResponse.error("Query failed: " + e.getMessage())))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flux();
     }
 
     /**
