@@ -14,7 +14,7 @@ const GraphExplorerPage: React.FC = () => {
     queryFn: () => graphRagApi.getRelatedEntities(searchTrigger),
     enabled: !!searchTrigger,
     select: (response) => {
-      if (response.code === 0) {
+      if (response.success) {
         return response.data;
       }
       throw new Error(response.message);

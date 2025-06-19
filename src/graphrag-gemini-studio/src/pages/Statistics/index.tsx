@@ -12,7 +12,7 @@ const StatisticsPage: React.FC = () => {
     queryKey: ['graphStats'],
     queryFn: () => graphRagApi.getStats(),
     select: (response) => {
-      if (response.code === 0) {
+      if (response.success) {
         return response.data;
       }
       throw new Error(response.message);

@@ -11,7 +11,7 @@ const FileUploader: React.FC = () => {
   const uploadMutation = useMutation({
     mutationFn: (file: File) => graphRagApi.uploadDocument(file),
     onSuccess: (response) => {
-      if (response.code === 0) {
+      if (response.success) {
         message.success(response.data || '文件上传成功!');
       } else {
         message.error(response.message);
