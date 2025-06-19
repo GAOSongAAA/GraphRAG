@@ -12,12 +12,13 @@ const GraphExplorerPage: React.FC = () => {
 
   const { data, isLoading, isError, error } = useQuery<RelatedEntityInfo[], Error>({
     queryKey: ['relatedEntities', searchTrigger],
-    queryFn: () => graphRagApi.getRelatedEntities(searchTrigger).then(response => {
-      if (response.code === 0) {
-        return response.data;
-      }
-      throw new Error(response.message);
-    }),
+    queryFn: () =>
+      graphRagApi.getRelatedEntities(searchTrigger).then((response) => {
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error(response.message);
+      }),
     enabled: !!searchTrigger,
   });
   // 使用 useEffect 來處理錯誤訊息

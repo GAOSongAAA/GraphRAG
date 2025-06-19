@@ -13,7 +13,7 @@ const DashboardPage: React.FC = () => {
   const queryMutation = useMutation({
     mutationFn: (request: GraphRagRequest) => graphRagApi.query(request),
     onSuccess: (response) => {
-      if (response.code === 0) {
+      if (response.success) {
         setResult(response.data);
       } else {
         message.error(response.message);
