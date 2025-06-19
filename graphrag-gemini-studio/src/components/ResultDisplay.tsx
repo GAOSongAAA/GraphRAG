@@ -24,11 +24,11 @@ const ResultDisplay: React.FC<Props> = ({ data }) => {
 
       <Collapse accordion>
         <Panel
-          header={`推理依据 (${data.segments.length}个片段)`}
+          header={`推理依据 (${data.segments?.length ?? 0}个片段)`}
           key="1"
         >
           <div className="space-y-md max-h-96 overflow-y-auto pr-sm">
-            {data.segments.map((seg, index) => (
+            {data.segments?.map((seg, index) => (
               <Card key={index} size="small">
                 <div className="flex justify-between items-start">
                   <FileTextOutlined className="mr-sm mt-1" />
